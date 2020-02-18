@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.0)
 
 project(unit-tests C CXX)
 add_definitions(-DWSJCPP_VERSION="ut-v0.0.1")
-add_definitions(-DWSJCPP_NAME="unit-tests-wsjcpp-light-web-server.git")
+add_definitions(-DWSJCPP_NAME="unit-tests-wsjcpp-light-web-server")
 
 if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     set(MACOSX TRUE)
@@ -27,8 +27,14 @@ list (APPEND WSJCPP_SOURCES "../src.wsjcpp/wsjcpp_core/wsjcpp_unit_tests.cpp")
 list (APPEND WSJCPP_SOURCES "../src.wsjcpp/wsjcpp_core/wsjcpp_unit_tests.h")
 list (APPEND WSJCPP_SOURCES "../src.wsjcpp/wsjcpp_core/wsjcpp_unit_tests_main.cpp")
 
-# wsjcpp-light-web-server.git:v0.0.1
+# wsjcpp-light-web-server:v0.0.1
 list (APPEND WSJCPP_INCLUDE_DIRS "../src")
+list (APPEND WSJCPP_SOURCES "../src/wsjcpp_light_web_http_request.h")
+list (APPEND WSJCPP_SOURCES "../src/wsjcpp_light_web_http_request.cpp")
+list (APPEND WSJCPP_SOURCES "../src/wsjcpp_light_web_http_response.h")
+list (APPEND WSJCPP_SOURCES "../src/wsjcpp_light_web_http_response.cpp")
+list (APPEND WSJCPP_SOURCES "../src/wsjcpp_light_web_server.h")
+list (APPEND WSJCPP_SOURCES "../src/wsjcpp_light_web_server.cpp")
 
 # unit-tests
 list (APPEND WSJCPP_INCLUDE_DIRS "src")

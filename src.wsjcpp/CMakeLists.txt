@@ -2,7 +2,7 @@
 cmake_minimum_required(VERSION 3.0)
 
 add_definitions(-DWSJCPP_VERSION="v0.0.1")
-add_definitions(-DWSJCPP_NAME="wsjcpp-light-web-server.git")
+add_definitions(-DWSJCPP_NAME="wsjcpp-light-web-server")
 
 if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     set(MACOSX TRUE)
