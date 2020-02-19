@@ -6,6 +6,8 @@ branches:
 
 dist: bionic
 
+
+  
 addons:
   apt:
     packages:
@@ -14,9 +16,14 @@ addons:
     - g++
     - pkg-config
 
+install:
+  - pip3 install --user requests
+
 # Build steps
 script:
   - ./build_simple.sh
   - cd unit-tests.wsjcpp
   - ./build_simple.sh
   - ./unit-tests
+  - cd server-tests
+  - ./run_tests.py
