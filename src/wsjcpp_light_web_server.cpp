@@ -173,7 +173,11 @@ void WSJCppLightWebHttpThreadWorker::run() {
             WSJCppLog::info(TAG, "\nRequest: \n>>>\n" + sRequest + "\n<<<");
 
             if (bErrorRead) {
-                pResponse->sendRequestTimeOut();
+                pResponse->requestTimeout().noCache().sendText(
+                    "<html><body><h1>408 Request Time-out</h1>"
+                    "Your browser didn't send a complete request in time."
+                    "</body></html>"
+                );
             } else if (pInfo->requestType() == "OPTIONS") {
                 pResponse->ok().sendOptions("OPTIONS, GET, POST");
             } else if (pInfo->requestType() != "GET" && pInfo->requestType() != "POST") {

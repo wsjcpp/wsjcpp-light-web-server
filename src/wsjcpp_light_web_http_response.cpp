@@ -19,15 +19,6 @@
 // enum for http responses
 std::map<int, std::string> *WSJCppLightWebHttpResponse::g_mapReponseDescription = nullptr;
 
-// deprecated
-std::string WSJCppLightWebHttpResponse::RESP_OK = "HTTP/1.1 200 OK";
-std::string WSJCppLightWebHttpResponse::RESP_BAD_REQUEST = "HTTP/1.1 400 Bad Request";
-std::string WSJCppLightWebHttpResponse::RESP_FORBIDDEN = "HTTP/1.1 403 Forbidden";
-std::string WSJCppLightWebHttpResponse::RESP_NOT_FOUND = "HTTP/1.1 404 Not Found";
-std::string WSJCppLightWebHttpResponse::RESP_PAYLOAD_TOO_LARGE = "HTTP/1.1 413 Payload Too Large";
-std::string WSJCppLightWebHttpResponse::RESP_INTERNAL_SERVER_ERROR = "HTTP/1.1 500 Internal Server Error";
-std::string WSJCppLightWebHttpResponse::RESP_NOT_IMPLEMENTED = "HTTP/1.1 501 Not Implemented";
-
 // ----------------------------------------------------------------------
 
 WSJCppLightWebHttpResponse::WSJCppLightWebHttpResponse(int nSockFd) {
@@ -41,6 +32,7 @@ WSJCppLightWebHttpResponse::WSJCppLightWebHttpResponse(int nSockFd) {
         WSJCppLightWebHttpResponse::g_mapReponseDescription->insert(std::pair<int, std::string>(413, "HTTP/1.1 413 Payload Too Large"));
         WSJCppLightWebHttpResponse::g_mapReponseDescription->insert(std::pair<int, std::string>(500, "HTTP/1.1 500 Internal Server Error"));
         WSJCppLightWebHttpResponse::g_mapReponseDescription->insert(std::pair<int, std::string>(501, "HTTP/1.1 501 Not Implemented"));
+        WSJCppLightWebHttpResponse::g_mapReponseDescription->insert(std::pair<int, std::string>(408, "HTTP/1.1 408 Request Time-out"));
     }
 
     m_nSockFd = nSockFd;
@@ -98,6 +90,13 @@ WSJCppLightWebHttpResponse &WSJCppLightWebHttpResponse::internalServerError() {
 
 WSJCppLightWebHttpResponse &WSJCppLightWebHttpResponse::notImplemented() {
     m_nResponseCode = 501;
+    return *this;
+}
+
+// ----------------------------------------------------------------------
+
+WSJCppLightWebHttpResponse &WSJCppLightWebHttpResponse::requestTimeout() {
+    m_nResponseCode = 408;
     return *this;
 }
 
@@ -209,33 +208,6 @@ void WSJCppLightWebHttpResponse::sendOptions(const std::string &sOptions) {
 
 // ----------------------------------------------------------------------
 
-void WSJCppLightWebHttpResponse::sendRequestTimeOut() {
-    std::string sResponse = "I don't understand you! Are you just a machine? Or maybe hacker?";
-    /*
-    HTTP/1.0 408 Request Time-out
-Cache-Control: no-cache
-Connection: close
-Content-Type: text/html
-
-<html><body><h1>408 Request Time-out</h1>
-Your browser didn't send a complete request in time.
-</body></html>
-    */
-    
-    if (m_bClosed) {
-        WSJCppLog::warn(TAG, "Already sended response");
-        return;
-    }
-    m_bClosed = true;
-    
-    WSJCppLog::info(TAG, "\nResponse: \n>>>\n" + sResponse + "\n<<<");
-
-    send(m_nSockFd, sResponse.c_str(), sResponse.length(),0);
-    close(m_nSockFd);
-}
-
-// ----------------------------------------------------------------------
-
 void WSJCppLightWebHttpResponse::sendFile(const std::string &sFilePath) {
 
     // read data from file
@@ -279,21 +251,7 @@ void WSJCppLightWebHttpResponse::sendBuffer(const std::string &sFilePath, const 
         return;
     }
     m_bClosed = true;
-
-    // #if __APPLE__
-    //     send(m_nSockFd, sResponse.c_str(), sResponse.length(), SO_NOSIGPIPE);
-    //     send(m_nSockFd, pData, nSize, SO_NOSIGPIPE);
-    // // #if
-    // // TARGET_OS_MAC 
-
-    // #else
-    // SO_NOSIGPIPE
     write(m_nSockFd, sResponse.c_str(), sResponse.length());
     write(m_nSockFd, pBuffer, nBufferSize);
-
-    // send(m_nSockFd, sResponse.c_str(), sResponse.length(), MSG_CONFIRM);
-    // send(m_nSockFd, pBuffer, nBufferSize, MSG_CONFIRM);
-    // #endif
-    
     close(m_nSockFd);
 }

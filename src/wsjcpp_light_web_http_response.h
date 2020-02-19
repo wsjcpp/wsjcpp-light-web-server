@@ -23,15 +23,6 @@
 class WSJCppLightWebHttpResponse {
     public:
         static std::map<int, std::string> *g_mapReponseDescription;
-
-        // enum for http responses
-        static std::string RESP_OK;
-        static std::string RESP_BAD_REQUEST;
-        static std::string RESP_FORBIDDEN;
-        static std::string RESP_NOT_FOUND;
-        static std::string RESP_PAYLOAD_TOO_LARGE;
-        static std::string RESP_INTERNAL_SERVER_ERROR;
-        static std::string RESP_NOT_IMPLEMENTED;
         
         WSJCppLightWebHttpResponse(int nSockFd);
 
@@ -42,6 +33,7 @@ class WSJCppLightWebHttpResponse {
         WSJCppLightWebHttpResponse &payloadTooLarge();
         WSJCppLightWebHttpResponse &internalServerError();
         WSJCppLightWebHttpResponse &notImplemented();
+        WSJCppLightWebHttpResponse &requestTimeout();
 
         WSJCppLightWebHttpResponse &noCache();
         WSJCppLightWebHttpResponse &cacheSec(int nCacheSec);
@@ -49,7 +41,6 @@ class WSJCppLightWebHttpResponse {
         void sendText(const std::string &sBody);
         void sendEmpty();
         void sendOptions(const std::string &sOptions);
-        void sendRequestTimeOut();
         void sendFile(const std::string &sFilePath);
         void sendBuffer(const std::string &sFilePath, const char *pBuffer, const int nBufferSize);
 
