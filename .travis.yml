@@ -5,9 +5,10 @@ branches:
     - master
 
 dist: bionic
-
-
   
+python:
+  - "3.7"
+
 addons:
   apt:
     packages:
@@ -15,6 +16,7 @@ addons:
     - make
     - g++
     - pkg-config
+    - python3-pip
 
 install:
   - pip3 install --user requests
