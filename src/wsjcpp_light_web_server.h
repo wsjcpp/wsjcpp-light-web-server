@@ -52,69 +52,56 @@ class WSJCppLightWebHttpHandlerBase {
 
 // ---------------------------------------------------------------------
 
-class WSJCppLightWebHttpHandlers {
-    public:
-        WSJCppLightWebHttpHandlers();
-        void add(WSJCppLightWebHttpHandlerBase *pHandler);
-        void remove(const std::string &sName);
-        bool find(const std::string &sName, WSJCppLightWebHttpHandlerBase *pHandler);
-        bool handle(const std::string &sWorkerId, WSJCppLightWebHttpRequest *pRequest);
-    private:
-        std::string TAG;
-        std::vector<WSJCppLightWebHttpHandlerBase *> m_pHandlers;
-};
-
-// ---------------------------------------------------------------------
-
 class WSJCppLightWebHttpThreadWorker {
     public:
 
         WSJCppLightWebHttpThreadWorker(
             const std::string &sName, 
             WSJCppLightWebHttpDequeRequests *pDeque, 
-            WSJCppLightWebHttpHandlers *pHandlers
+            std::vector<WSJCppLightWebHttpHandlerBase *> *pVHandlers
         );
 
         void start();
         void stop();
         void run();        
     private:
+        bool handle(WSJCppLightWebHttpRequest *pRequest);
         std::string TAG;
         std::string m_sName;
         WSJCppLightWebHttpDequeRequests *m_pDeque;
-        WSJCppLightWebHttpHandlers *m_pHandlers;
+        std::vector<WSJCppLightWebHttpHandlerBase *> *m_pVHandlers;
         bool m_bStop;
         pthread_t m_serverThread;
 };
 
 // ---------------------------------------------------------------------
 
-class LightHttpServer {
+class WSJCppLightWebServer {
     public:
 
-        LightHttpServer();
+        WSJCppLightWebServer();
         void setPort(int nPort);
         void setMaxWorkers(int nMaxWorkers);
         void startSync();
         void start();
         void stop();
-
-        WSJCppLightWebHttpHandlers *handlers();
+        void addHandler(WSJCppLightWebHttpHandlerBase *pHandler);
 
     private:
         std::string TAG;
         WSJCppLightWebHttpDequeRequests *m_pDeque;
-        WSJCppLightWebHttpHandlers *m_pHandlers;
         bool m_bStop;
 
         int m_nMaxWorkers;
         int m_nPort;
+        std::vector<WSJCppLightWebHttpHandlerBase *> *m_pVHandlers;
         std::vector<WSJCppLightWebHttpThreadWorker *> m_vWorkers;
 
         int m_nSockFd;
         struct sockaddr_in m_serverAddress;
         pthread_t m_serverThread;
 };
+
 #endif // WSJCPP_LIGHT_WEB_SERVER_H
 
 

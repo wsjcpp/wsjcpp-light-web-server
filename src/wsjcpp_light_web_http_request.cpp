@@ -53,7 +53,7 @@ std::string WSJCppLightWebHttpRequest::requestHttpVersion() {
 }
 
 // ----------------------------------------------------------------------
-// TODO redesign this
+// TODO redesign this to vector
 std::map<std::string,std::string> &WSJCppLightWebHttpRequest::requestQueryParams() {
     return m_sRequestQueryParams;
 }
@@ -141,7 +141,9 @@ void WSJCppLightWebHttpRequest::parseFirstLine(const std::string &sHeader) {
             m_sRequestHttpVersion = params[2];
         }
     }
-    
+    // TODO process the path '/1/../2/' to /2/ - vuln
+    // curl --path-as-is "http://localhost:1234/1/../2/"
+
     // parse query
     std::size_t nFound = m_sRequestPath.find("?");
       if (nFound != std::string::npos) {

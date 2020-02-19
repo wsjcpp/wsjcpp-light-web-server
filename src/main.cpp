@@ -15,11 +15,10 @@ int main(int argc, const char* argv[]) {
     WSJCppLog::setPrefixLogFile("wsjcpp");
     WSJCppLog::setLogDirectory(".logs");
 
-    LightHttpServer httpServer;
+    WSJCppLightWebServer httpServer;
     httpServer.setPort(1234);
     httpServer.setMaxWorkers(1);
-    httpServer.handlers()->add((WSJCppLightWebHttpHandlerBase *)new HttpHandlerWebFolderExample("./web"));
-
+    httpServer.addHandler((WSJCppLightWebHttpHandlerBase *)new HttpHandlerWebFolderExample("./web"));
 
     httpServer.startSync();
     return 0;

@@ -43,3 +43,7 @@ distribution:
   - source-file: "src/wsjcpp_light_web_server.cpp"
     target-file: "wsjcpp_light_web_server.cpp"
     type: "source-code"
+unit-tests:
+  cases:
+    - name: "ParseHttpRequest"
+      description: "Check the parse requests"
