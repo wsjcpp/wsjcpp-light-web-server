@@ -27,5 +27,5 @@ script:
   - cd unit-tests.wsjcpp
   - ./build_simple.sh
   - ./unit-tests
-  - cd server-tests
+  - cd ../server-tests
   - ./run_tests.py
