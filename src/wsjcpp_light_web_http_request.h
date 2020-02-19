@@ -30,11 +30,12 @@ class WSJCppLightWebHttpRequest {
         );
         ~WSJCppLightWebHttpRequest() {};
 
-        int sockFd();
+        int getSockFd();
+        std::string getUniqueId();
         void appendRecieveRequest(const std::string &sRequestPart);
         bool isEnoughAppendReceived();
         
-        std::string address();
+        std::string getAddress();
         std::string requestType();
         std::string requestPath();
         std::string requestBody();
@@ -56,6 +57,7 @@ class WSJCppLightWebHttpRequest {
         EnumParserState m_nParserState;
         std::vector<std::string> m_vHeaders;
         int m_nContentLength;
+        std::string m_sUniqueId;
         std::string m_sRequest;
         std::string m_sAddress;
         std::string m_sRequestType;

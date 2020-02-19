@@ -116,7 +116,7 @@ void WSJCppLightWebHttpThreadWorker::run() {
         bool bExists = pInfo != nullptr;
         // TODO refactor
         if (bExists) {
-            int nSockFd = pInfo->sockFd();
+            int nSockFd = pInfo->getSockFd();
 
             // set timeout options
             struct timeval timeout;

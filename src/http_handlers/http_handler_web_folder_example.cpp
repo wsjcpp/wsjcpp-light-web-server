@@ -45,11 +45,11 @@ bool HttpHandlerWebFolderExample::handle(const std::string &sWorkerId, WSJCppLig
     
     std::string sFilePath = m_sWebFolder + sRequestPath; // TODO check /../ in path
     if (WSJCppCore::fileExists(sFilePath)) {
-        WSJCppLightWebHttpResponse resp(pRequest->sockFd());
+        WSJCppLightWebHttpResponse resp(pRequest->getSockFd());
         resp.cacheSec(60).ok().sendFile(sFilePath);
     } else {
         std::string sFilePath = m_sWebFolder + "/index.html";
-        WSJCppLightWebHttpResponse resp(pRequest->sockFd());
+        WSJCppLightWebHttpResponse resp(pRequest->getSockFd());
         resp.cacheSec(60).ok().sendFile(sFilePath);    
     }
     return true;

@@ -18,6 +18,7 @@
 
 WSJCppLightWebHttpRequest::WSJCppLightWebHttpRequest(int nSockFd, const std::string &sAddress) {
     TAG = "WSJCppLightWebHttpRequest";
+    m_sUniqueId = WSJCppCore::createUuid();
     m_nSockFd = nSockFd;
     m_sAddress = sAddress;
     m_bClosed = false;
@@ -30,8 +31,14 @@ WSJCppLightWebHttpRequest::WSJCppLightWebHttpRequest(int nSockFd, const std::str
 
 // ----------------------------------------------------------------------
 
-int WSJCppLightWebHttpRequest::sockFd() {
+int WSJCppLightWebHttpRequest::getSockFd() {
     return m_nSockFd;
+}
+
+// ----------------------------------------------------------------------
+
+std::string WSJCppLightWebHttpRequest::getUniqueId() {
+    return m_sUniqueId;
 }
 
 // ----------------------------------------------------------------------
@@ -60,7 +67,7 @@ std::map<std::string,std::string> &WSJCppLightWebHttpRequest::requestQueryParams
 
 // ----------------------------------------------------------------------
 
-std::string WSJCppLightWebHttpRequest::address() {
+std::string WSJCppLightWebHttpRequest::getAddress() {
     return m_sAddress;
 }
 
