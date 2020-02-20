@@ -1,16 +1,6 @@
-#include "wsjcpp_light_web_server.h"
+#include "wsjcpp_light_web_http_request.h"
 
 #include <sstream>
-#include <iostream>
-#include <vector>
-#include <sys/stat.h>
-#include <sys/time.h>
-#include <fstream>
-#include <regex>        // regex, sregex_token_iterator
-#include <stdio.h>
-#include <math.h>
-#include <thread>
-#include <algorithm>
 #include <wsjcpp_core.h>
 
 // ----------------------------------------------------------------------
@@ -31,43 +21,47 @@ WSJCppLightWebHttpRequest::WSJCppLightWebHttpRequest(int nSockFd, const std::str
 
 // ----------------------------------------------------------------------
 
-int WSJCppLightWebHttpRequest::getSockFd() {
+int WSJCppLightWebHttpRequest::getSockFd() const {
     return m_nSockFd;
 }
 
 // ----------------------------------------------------------------------
 
-std::string WSJCppLightWebHttpRequest::getUniqueId() {
+std::string WSJCppLightWebHttpRequest::getUniqueId() const {
     return m_sUniqueId;
 }
 
 // ----------------------------------------------------------------------
 
-std::string WSJCppLightWebHttpRequest::requestType() {
+std::string WSJCppLightWebHttpRequest::getRequestType() const {
     return m_sRequestType;
 }
 
 // ----------------------------------------------------------------------
 
-std::string WSJCppLightWebHttpRequest::requestPath() {
+std::string WSJCppLightWebHttpRequest::getRequestPath() const {
     return m_sRequestPath;
+}
+
+std::string WSJCppLightWebHttpRequest::getRequestBody() const {
+    return m_sRequestBody;
 }
 
 // ----------------------------------------------------------------------
 
-std::string WSJCppLightWebHttpRequest::requestHttpVersion() {
+std::string WSJCppLightWebHttpRequest::getRequestHttpVersion() const {
     return m_sRequestHttpVersion;
 }
 
 // ----------------------------------------------------------------------
 // TODO redesign this to vector
-std::map<std::string,std::string> &WSJCppLightWebHttpRequest::requestQueryParams() {
+std::map<std::string,std::string> &WSJCppLightWebHttpRequest::getRequestQueryParams() {
     return m_sRequestQueryParams;
 }
 
 // ----------------------------------------------------------------------
 
-std::string WSJCppLightWebHttpRequest::getAddress() {
+std::string WSJCppLightWebHttpRequest::getAddress() const {
     return m_sAddress;
 }
 
@@ -113,15 +107,15 @@ void WSJCppLightWebHttpRequest::appendRecieveRequest(const std::string &sRequest
         }
     }
     
-    if (m_nParserState == EnumParserState::BODY && m_sRequest.length() == m_nContentLength) {
+    if (m_nParserState == EnumParserState::BODY && m_sRequest.length() >= m_nContentLength) {
         m_nParserState = EnumParserState::ENDED;
-        m_sRequestBody = m_sRequest;
+        m_sRequestBody = m_sRequest.substr(0, m_nContentLength);
     }
 }
 
 // ----------------------------------------------------------------------
 
-bool WSJCppLightWebHttpRequest::isEnoughAppendReceived() {
+bool WSJCppLightWebHttpRequest::isEnoughAppendReceived() const {
     return m_nParserState == EnumParserState::ENDED;
 }
 
@@ -148,8 +142,16 @@ void WSJCppLightWebHttpRequest::parseFirstLine(const std::string &sHeader) {
             m_sRequestHttpVersion = params[2];
         }
     }
-    // TODO process the path '/1/../2/' to /2/ - vuln
-    // curl --path-as-is "http://localhost:1234/1/../2/"
+
+    if (m_sRequestPath.length() == 0) {
+        m_sRequestPath = "/";
+    }
+    m_sRequestPath = WSJCppCore::doNormalizePath(m_sRequestPath);
+
+    // TODO url path encoding
+    while (m_sRequestPath.length() > 2 && m_sRequestPath.substr(0,2) == "..") {
+        m_sRequestPath = WSJCppCore::doNormalizePath("/erase/" + m_sRequestPath);
+    }
 
     // parse query
     std::size_t nFound = m_sRequestPath.find("?");
@@ -162,7 +164,7 @@ void WSJCppLightWebHttpRequest::parseFirstLine(const std::string &sHeader) {
             std::size_t nFound2 = sParam.find("=");
             std::string sValue = sParam.substr(nFound2+1);
             std::string sName = sParam.substr(0, nFound2);
-            m_sRequestQueryParams[sName] = sValue; // wrong use map for params
+            m_sRequestQueryParams[sName] = sValue; // TODO wrong use map for params
         }
     }
 }

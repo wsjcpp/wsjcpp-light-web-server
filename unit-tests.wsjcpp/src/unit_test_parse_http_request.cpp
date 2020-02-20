@@ -32,24 +32,35 @@ bool UnitTestParseHttpRequest::run() {
         LTest(
             int sockFd, 
             std::string address, 
-            std::vector<LPartsOfRequest> parts
+            std::vector<LPartsOfRequest> parts,
+            std::string expectedPath,
+            std::string expectedType,
+            std::string expectedBody,
+            std::string expectedHttpVersion
         ) {
             this->sockFd = sockFd;
             this->address = address;
             this->parts = parts;
+            this->expectedPath = expectedPath;
+            this->expectedType = expectedType;
+            this->expectedBody = expectedBody;
+            this->expectedHttpVersion = expectedHttpVersion;
         }
         int sockFd;
         std::string address;
         std::vector<LPartsOfRequest> parts;
+        std::string expectedPath;
+        std::string expectedType;
+        std::string expectedBody;
+        std::string expectedHttpVersion;
     };
 
     std::vector<LTest> tests;
     tests.push_back(LTest(0, "some-address", { 
         LPartsOfRequest("GET /pub/WWW/TheProject.html HTTP/1.1\n", false), 
         LPartsOfRequest("Host: www.w3.org\n", false),
-        LPartsOfRequest("Content-Length: 0\n", false),
         LPartsOfRequest("\n", true)
-    }));
+    }, "/pub/WWW/TheProject.html", "GET", "", "HTTP/1.1"));
 
     tests.push_back(LTest(1, "some-address2", { 
         LPartsOfRequest("GET /pub/WWW/TheProject.html HTTP/1.1\n", false),
@@ -57,7 +68,23 @@ bool UnitTestParseHttpRequest::run() {
         LPartsOfRequest("Content-Length: 1\n", false),
         LPartsOfRequest("\n", false),
         LPartsOfRequest("1", true)
-    }));
+    }, "/pub/WWW/TheProject.html", "GET", "1", "HTTP/1.1"));
+
+    tests.push_back(LTest(2, "some-address3", { 
+        LPartsOfRequest("GET /1/../2 HTTP/1.1\n", false),
+        LPartsOfRequest("Host: www.w3.org\n", false),
+        LPartsOfRequest("Content-Length: 1\n", false),
+        LPartsOfRequest("\n", false),
+        LPartsOfRequest("1", true)
+    }, "/2", "GET", "1", "HTTP/1.1"));
+
+    tests.push_back(LTest(3, "some-address4", { 
+        LPartsOfRequest("POST /1/../../2/ HTTP/1.1\n", false),
+        LPartsOfRequest("Host: www.w3.org\n", false),
+        LPartsOfRequest("Content-Length: 10\n", false),
+        LPartsOfRequest("\n", false),
+        LPartsOfRequest("{\"some\":1}   ", true)
+    }, "/2/", "POST", "{\"some\":1}", "HTTP/1.1"));
 
     for (int i = 0; i < tests.size(); i++) {
         LTest test = tests[i];
@@ -72,6 +99,11 @@ bool UnitTestParseHttpRequest::run() {
             request.appendRecieveRequest(test.parts[n].sPart);
             compareB(bTestSuccess, sNTest2, request.isEnoughAppendReceived(), test.parts[n].enough);
         }
+        compareS(bTestSuccess, sNTest + " request expected path", request.getRequestPath(), test.expectedPath);
+        compareS(bTestSuccess, sNTest + " request expected type", request.getRequestType(), test.expectedType);
+        compareS(bTestSuccess, sNTest + " request expected body", request.getRequestBody(), test.expectedBody);
+        compareS(bTestSuccess, sNTest + " request expected body", request.getRequestHttpVersion(), test.expectedHttpVersion);
+        
     }
     return bTestSuccess;
 }

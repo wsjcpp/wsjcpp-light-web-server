@@ -9,8 +9,7 @@ TEST_URL = "http://localhost:1234"
 
 try:
     print(" > > > TESTS: begin ")
-    liblightwebservertest.start_server("../", ["./wsjcpp-light-web-server", "start"], 1234)
-
+    liblightwebservertest.start_server("../", ["./wsjcpp-light-web-server", "folder", "./web"], 1234)
     print("index.html - testing...")
     index_html = open("../web/index.html", 'r').read()
     r = requests.get(TEST_URL)
@@ -44,7 +43,11 @@ try:
         else:
             print("index.css - ok")
 
-    
+    print("not-found - testing...")
+    r = requests.get(TEST_URL + "/not-found 0101")
+    if r.status_code != 404:
+        raise Exception("not-found - Wrong status code expected 404, but got " + str(r.status_code))
+    print("index.css - ok")
 
 finally:
     liblightwebservertest.stop_server()

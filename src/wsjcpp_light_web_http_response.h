@@ -1,22 +1,8 @@
 #ifndef WSJCPP_LIGHT_WEB_HTTP_RESPONSE_H
 #define WSJCPP_LIGHT_WEB_HTTP_RESPONSE_H
 
-#include <iostream>
-#include <vector>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
-#include <sys/types.h> 
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <string.h>
-#include <arpa/inet.h>
-#include <pthread.h>
+#include <string>
 #include <map>
-#include <deque>
-#include <mutex>
-#include <vector>
 
 // ---------------------------------------------------------------------
 

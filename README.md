@@ -12,9 +12,12 @@ Just include this files:
 - src/wsjcpp_light_web_http_request.cpp
 - src/wsjcpp_light_web_http_response.h
 - src/wsjcpp_light_web_http_response.cpp
+- src/wsjcpp_light_web_http_handler_rewrite_folder.h
+- src/wsjcpp_light_web_http_handler_rewrite_folder.cpp
+- src/wsjcpp_light_web_http_handler_web_folder.h
+- src/wsjcpp_light_web_http_handler_web_folder.cpp
 - src/wsjcpp_light_web_server.h
 - src/wsjcpp_light_web_server.cpp
-
 
 ## Integrate via wsjcpp
 
@@ -22,91 +25,146 @@ Just include this files:
 $ wsjcpp install https://github.com/wsjcpp/wsjcpp-light-web-server:master
 ```
 
-# Http Handlers examples
+## Examples
+
+### Example for simular rewrute_rules
+
+Simpular apache:
+```
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule . index.html
+```
+
+Contains base handler:
+```
+WSJCppLightWebHttpHandlerRewriteFolder(sPrefixPath, sDirPath)
+```
+Where
+* sPrefixPath - like "/app1/" -> "http://localhost:1234/app1/"
+* sDirPath - relative or absulte path to folder with web files
+
+Specific: if file will be not found in web folder so will be returned file index.html
+
+Will be good for single-web-app (like angular)
 
 Example init, add handler and start server
 ```
-LightHttpServer httpServer;
+WSJCppLightWebServer httpServer;
 httpServer.setPort(1234);
 httpServer.setMaxWorkers(1);
-httpServer.handlers()->add((WSJCppLightWebHttpHandlerBase *)new HttpHandlerWebFolderExample("./web"));
+httpServer.addHandler((WSJCppLightWebHttpHandlerBase *)new WSJCppLightWebHttpHandlerRewriteFolder("/app1/", "./web"));
 httpServer.startSync(); // this method will be hold current thread, if you with you can call just start/stop command
 ```
 
-## Web Folder example
+After compile and start will be available on `http://localhost:1234/app1/`
+
+### Example simple web folder
+
+Contains base handler:
+```
+WSJCppLightWebHttpHandlerWebFolder(sPrefixPath, sDirPath)
+```
+
+Where
+* sPrefixPath - like "/app2/" -> "http://localhost:1234/app2/"
+* sDirPath - relative or absulte path to folder with web files
+
+Specific: if file does not exists wil be returned 404 not found
+
+Example init, add handler and start server
+```
+WSJCppLightWebServer httpServer;
+httpServer.setPort(1234);
+httpServer.setMaxWorkers(1);
+httpServer.addHandler((WSJCppLightWebHttpHandlerBase *)new WSJCppLightWebHttpHandlerWebFolder("/app2/", "./web"));
+httpServer.startSync(); // this method will be hold current thread, if you with you can call just start/stop command
+```
+
+After compile and start will be available on `http://localhost:1234/app2/`
+
+### Example custom handler
 
 Define class:
 
+header-file:
 ```
+#ifndef HTTP_HANDLER_CUSTOM_H
+#define HTTP_HANDLER_CUSTOM_H
+
 #include <wsjcpp_light_web_server.h>
 
-class HttpHandlerWebFolderExample : WSJCppLightWebHttpHandlerBase {
+class HttpHandlerCustom : WSJCppLightWebHttpHandlerBase {
     public:
-        HttpHandlerWebFolderExample(const std::string &sWebFolder);
+        HttpHandlerCustom();
         virtual bool canHandle(const std::string &sWorkerId, WSJCppLightWebHttpRequest *pRequest);
         virtual bool handle(const std::string &sWorkerId, WSJCppLightWebHttpRequest *pRequest);
 
     private:
         std::string TAG;
-        std::string m_sWebFolder;
 };
+#endif // HTTP_HANDLER_CUSTOM_H
 ```
 
-Class implementation:
+source-file:
 ```
 #include <wsjcpp_core.h>
 
 // ----------------------------------------------------------------------
 
-HttpHandlerWebFolderExample::HttpHandlerWebFolderExample(const std::string &sWebFolder)
-    : WSJCppLightWebHttpHandlerBase("web-folder") {
+HttpHandlerCustom::HttpHandlerCustom()
+    : WSJCppLightWebHttpHandlerBase("custom") {
 
-    TAG = "HttpHandlerWebFolderExample";
-    m_sWebFolder = sWebFolder;
+    TAG = "HttpHandlerCustom";
 }
 
 // ----------------------------------------------------------------------
 
-bool HttpHandlerWebFolderExample::canHandle(const std::string &sWorkerId, WSJCppLightWebHttpRequest *pRequest) {
+bool HttpHandlerCustom::canHandle(const std::string &sWorkerId, WSJCppLightWebHttpRequest *pRequest) {
     std::string _tag = TAG + "-" + sWorkerId;
-    // WSJCppLog::warn(_tag, "canHandle: " + pRequest->requestPath());
-    std::string sRequestPath = pRequest->requestPath();
-    
-    if (sRequestPath == "") {
-        sRequestPath = "/";
-        WSJCppLog::warn(_tag, "Request path is empty");
-    }
+    std::string sRequestPath = pRequest->getRequestPath();
 
-    if (sRequestPath == "/") {
-        sRequestPath = "/index.html";
+    if (sRequestPath == "/custom/" || sRequestPath == "/custom") {
+        return true;    
     }
-
-    if (!WSJCppCore::dirExists(m_sWebFolder)) {
-        WSJCppLog::warn(_tag, "Directory " + m_sWebFolder + " does not exists");
+    if (sRequestPath == "/custom1/" || sRequestPath == "/custom1") {
+        return true;    
     }
-    return true;
+    return false;
 }
 
 // ----------------------------------------------------------------------
 
-bool HttpHandlerWebFolderExample::handle(const std::string &sWorkerId, WSJCppLightWebHttpRequest *pRequest) {
+bool HttpHandlerCustom::handle(const std::string &sWorkerId, WSJCppLightWebHttpRequest *pRequest) {
     std::string _tag = TAG + "-" + sWorkerId;
-    std::string sRequestPath = pRequest->requestPath();
-    // WSJCppLog::warn(_tag, pRequest->requestPath());
+    std::string sRequestPath = pRequest->getRequestPath();
+    // WSJCppLog::warn(_tag, sRequestPath);
     
-    if (sRequestPath == "") {
-        sRequestPath = "/";
-    }
-    
-    std::string sFilePath = m_sWebFolder + sRequestPath; // TODO check /../ in path
-    if (WSJCppCore::fileExists(sFilePath)) {
-        WSJCppLightWebHttpResponse resp(pRequest->sockFd());
-        resp.cacheSec(60).ok().sendFile(sFilePath);
+    WSJCppLightWebHttpResponse resp(pRequest->sockFd());
+    if (sRequestPath == "/custom" || sRequestPath == "/custom/") {
+        resp.cacheSec(60).ok().sendText(
+            "<h1>This is custom</h1>"
+        );
+    } else if (sRequestPath == "/custom1" || sRequestPath == "/custom1/") {
+        resp.cacheSec(60).ok().sendText(
+            "<h1>But this is custom1</h1>"
+        );
     } else {
-        std::string sFilePath = m_sWebFolder + "/index.html";
-        WSJCppLightWebHttpResponse resp(pRequest->sockFd());
-        resp.cacheSec(60).ok().sendFile(sFilePath);    
+        resp.noCache().ok().sendText(
+            "<h1>Unknown</h1>"
+        );
     }
     return true;
 }
+```
+
+Example init, add handler and start server
+__order is important! Server will call canHandle & handle in same order as addHandler called__
+```
+WSJCppLightWebServer httpServer;
+httpServer.setPort(1234);
+httpServer.setMaxWorkers(1);
+httpServer.addHandler((WSJCppLightWebHttpHandlerBase *)new HttpHandlerCustom());
+httpServer.addHandler((WSJCppLightWebHttpHandlerBase *)new WSJCppLightWebHttpHandlerRewriteFolder("/", "./web"));
+httpServer.startSync(); // this method will be hold current thread, if you with you can call just start/stop command
 ```

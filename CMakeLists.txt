@@ -15,12 +15,14 @@ list (APPEND WSJCPP_SOURCES "src/wsjcpp_light_web_http_request.h")
 list (APPEND WSJCPP_SOURCES "src/wsjcpp_light_web_http_request.cpp")
 list (APPEND WSJCPP_SOURCES "src/wsjcpp_light_web_http_response.cpp")
 list (APPEND WSJCPP_SOURCES "src/wsjcpp_light_web_http_response.h")
+list (APPEND WSJCPP_SOURCES "src/wsjcpp_light_web_deque_http_requests.h")
+list (APPEND WSJCPP_SOURCES "src/wsjcpp_light_web_deque_http_requests.cpp")
+list (APPEND WSJCPP_SOURCES "src/wsjcpp_light_web_http_handler_rewrite_folder.h")
+list (APPEND WSJCPP_SOURCES "src/wsjcpp_light_web_http_handler_rewrite_folder.cpp")
+list (APPEND WSJCPP_SOURCES "src/wsjcpp_light_web_http_handler_web_folder.h")
+list (APPEND WSJCPP_SOURCES "src/wsjcpp_light_web_http_handler_web_folder.cpp")
 list (APPEND WSJCPP_SOURCES "src/wsjcpp_light_web_server.h")
 list (APPEND WSJCPP_SOURCES "src/wsjcpp_light_web_server.cpp")
-
-## Http Handlers
-list (APPEND WSJCPP_SOURCES "src/http_handlers/http_handler_web_folder_example.h")
-list (APPEND WSJCPP_SOURCES "src/http_handlers/http_handler_web_folder_example.cpp")
 
 include_directories(${WSJCPP_INCLUDE_DIRS})
 

@@ -1,23 +1,8 @@
 #ifndef WSJCPP_LIGHT_WEB_HTTP_REQUEST_H
 #define WSJCPP_LIGHT_WEB_HTTP_REQUEST_H
 
-#include "wsjcpp_light_web_http_request.h"
-
-#include <iostream>
-#include <vector>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
-#include <sys/types.h> 
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <string.h>
-#include <arpa/inet.h>
-#include <pthread.h>
+#include <string>
 #include <map>
-#include <deque>
-#include <mutex>
 #include <vector>
 
 // ---------------------------------------------------------------------
@@ -30,17 +15,17 @@ class WSJCppLightWebHttpRequest {
         );
         ~WSJCppLightWebHttpRequest() {};
 
-        int getSockFd();
-        std::string getUniqueId();
+        int getSockFd() const;
+        std::string getUniqueId() const;
         void appendRecieveRequest(const std::string &sRequestPart);
-        bool isEnoughAppendReceived();
+        bool isEnoughAppendReceived() const;
         
-        std::string getAddress();
-        std::string requestType();
-        std::string requestPath();
-        std::string requestBody();
-        std::string requestHttpVersion();
-        std::map<std::string,std::string> &requestQueryParams();
+        std::string getAddress() const;
+        std::string getRequestType() const;
+        std::string getRequestPath() const;
+        std::string getRequestBody() const;
+        std::string getRequestHttpVersion() const;
+        std::map<std::string,std::string> &getRequestQueryParams(); // TODO redesign to std::vector
 
     private:
         std::string TAG;

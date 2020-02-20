@@ -1,17 +1,9 @@
-#include "wsjcpp_light_web_server.h"
-
-#include <sstream>
-#include <iostream>
-#include <vector>
-#include <sys/stat.h>
-#include <sys/time.h>
-#include <fstream>
-#include <regex>        // regex, sregex_token_iterator
-#include <stdio.h>
-#include <math.h>
-#include <thread>
-#include <algorithm>
+#include "wsjcpp_light_web_http_response.h"
 #include <wsjcpp_core.h>
+#include <fstream>
+#include <unistd.h>
+#include <sstream>
+#include <sys/socket.h>
 
 // ----------------------------------------------------------------------
 // WSJCppLightWebHttpResponse

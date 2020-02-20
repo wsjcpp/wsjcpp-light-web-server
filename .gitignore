@@ -2,3 +2,4 @@ tmp/*
 wsjcpp-light-web-server
 .logs/*
 __pycache__
+.vscode/*
