@@ -28,6 +28,15 @@ bool UnitTestParseHttpRequest::run() {
         bool enough;
     };
 
+    struct LPartsOfRequestQueryParam {
+        LPartsOfRequestQueryParam(std::string sName, std::string sValue) {
+            this->sName = sName;
+            this->sValue = sValue;
+        }
+        std::string sName;
+        std::string sValue;
+    };
+
     struct LTest {
         LTest(
             int sockFd, 
@@ -36,7 +45,8 @@ bool UnitTestParseHttpRequest::run() {
             std::string expectedPath,
             std::string expectedType,
             std::string expectedBody,
-            std::string expectedHttpVersion
+            std::string expectedHttpVersion,
+            std::vector<LPartsOfRequestQueryParam> expectedQueryParams
         ) {
             this->sockFd = sockFd;
             this->address = address;
@@ -45,6 +55,7 @@ bool UnitTestParseHttpRequest::run() {
             this->expectedType = expectedType;
             this->expectedBody = expectedBody;
             this->expectedHttpVersion = expectedHttpVersion;
+            this->expectedQueryParams = expectedQueryParams;
         }
         int sockFd;
         std::string address;
@@ -53,6 +64,7 @@ bool UnitTestParseHttpRequest::run() {
         std::string expectedType;
         std::string expectedBody;
         std::string expectedHttpVersion;
+        std::vector<LPartsOfRequestQueryParam> expectedQueryParams;
     };
 
     std::vector<LTest> tests;
@@ -60,7 +72,7 @@ bool UnitTestParseHttpRequest::run() {
         LPartsOfRequest("GET /pub/WWW/TheProject.html HTTP/1.1\n", false), 
         LPartsOfRequest("Host: www.w3.org\n", false),
         LPartsOfRequest("\n", true)
-    }, "/pub/WWW/TheProject.html", "GET", "", "HTTP/1.1"));
+    }, "/pub/WWW/TheProject.html", "GET", "", "HTTP/1.1", {}));
 
     tests.push_back(LTest(1, "some-address2", { 
         LPartsOfRequest("GET /pub/WWW/TheProject.html HTTP/1.1\n", false),
@@ -68,7 +80,7 @@ bool UnitTestParseHttpRequest::run() {
         LPartsOfRequest("Content-Length: 1\n", false),
         LPartsOfRequest("\n", false),
         LPartsOfRequest("1", true)
-    }, "/pub/WWW/TheProject.html", "GET", "1", "HTTP/1.1"));
+    }, "/pub/WWW/TheProject.html", "GET", "1", "HTTP/1.1", {}));
 
     tests.push_back(LTest(2, "some-address3", { 
         LPartsOfRequest("GET /1/../2 HTTP/1.1\n", false),
@@ -76,7 +88,7 @@ bool UnitTestParseHttpRequest::run() {
         LPartsOfRequest("Content-Length: 1\n", false),
         LPartsOfRequest("\n", false),
         LPartsOfRequest("1", true)
-    }, "/2", "GET", "1", "HTTP/1.1"));
+    }, "/2", "GET", "1", "HTTP/1.1", {}));
 
     tests.push_back(LTest(3, "some-address4", { 
         LPartsOfRequest("POST /1/../../2/ HTTP/1.1\n", false),
@@ -84,7 +96,18 @@ bool UnitTestParseHttpRequest::run() {
         LPartsOfRequest("Content-Length: 10\n", false),
         LPartsOfRequest("\n", false),
         LPartsOfRequest("{\"some\":1}   ", true)
-    }, "/2/", "POST", "{\"some\":1}", "HTTP/1.1"));
+    }, "/2/", "POST", "{\"some\":1}", "HTTP/1.1", {}));
+
+    tests.push_back(LTest(4, "some-address4", { 
+        LPartsOfRequest("GET /query?somebook=Hello%20sss&somebook=Hello%20ddd&somebook2=dmsf&p4=11_-%dk123 HTTP/1.1\n", false),
+        LPartsOfRequest("Host: www.w3.org\n", false),
+        LPartsOfRequest("\n", true),
+    }, "/query", "GET", "", "HTTP/1.1", {
+        LPartsOfRequestQueryParam("somebook", "Hello%20sss"),
+        LPartsOfRequestQueryParam("somebook", "Hello%20ddd"),
+        LPartsOfRequestQueryParam("somebook2", "dmsf"),
+        LPartsOfRequestQueryParam("p4", "11_-%dk123")
+    }));
 
     for (int i = 0; i < tests.size(); i++) {
         LTest test = tests[i];
@@ -103,6 +126,19 @@ bool UnitTestParseHttpRequest::run() {
         compareS(bTestSuccess, sNTest + " request expected type", request.getRequestType(), test.expectedType);
         compareS(bTestSuccess, sNTest + " request expected body", request.getRequestBody(), test.expectedBody);
         compareS(bTestSuccess, sNTest + " request expected body", request.getRequestHttpVersion(), test.expectedHttpVersion);
+
+        std::vector<WSJCppLightWebHttpRequestQueryValue> params = request.getRequestQueryParams();
+        for (int i = 0; i < params.size(); i++) {
+            WSJCppLightWebHttpRequestQueryValue qv = params[i];
+            std::string sExpectedName = "";
+            std::string sExpectedValue = "";
+            if (i < test.expectedQueryParams.size()) {
+                sExpectedName = test.expectedQueryParams[i].sName;
+                sExpectedValue = test.expectedQueryParams[i].sValue;
+            }
+            compareS(bTestSuccess, sNTest + " request query param" + std::to_string(i) + " name", qv.getName(), sExpectedName);
+            compareS(bTestSuccess, sNTest + " request query param" + std::to_string(i) + " value", qv.getValue(), sExpectedValue);
+        }
         
     }
     return bTestSuccess;

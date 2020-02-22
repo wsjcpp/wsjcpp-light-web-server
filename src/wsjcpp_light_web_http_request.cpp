@@ -4,6 +4,25 @@
 #include <wsjcpp_core.h>
 
 // ----------------------------------------------------------------------
+
+WSJCppLightWebHttpRequestQueryValue::WSJCppLightWebHttpRequestQueryValue(const std::string &sName, const std::string &sValue) {
+    m_sName = sName;
+    m_sValue = sValue;
+}
+
+// ----------------------------------------------------------------------
+
+std::string WSJCppLightWebHttpRequestQueryValue::getName() const {
+    return m_sName;
+}
+
+// ----------------------------------------------------------------------
+
+std::string WSJCppLightWebHttpRequestQueryValue::getValue() const {
+    return m_sValue;
+}
+
+// ----------------------------------------------------------------------
 // WSJCppLightWebHttpRequest
 
 WSJCppLightWebHttpRequest::WSJCppLightWebHttpRequest(int nSockFd, const std::string &sAddress) {
@@ -54,9 +73,9 @@ std::string WSJCppLightWebHttpRequest::getRequestHttpVersion() const {
 }
 
 // ----------------------------------------------------------------------
-// TODO redesign this to vector
-std::map<std::string,std::string> &WSJCppLightWebHttpRequest::getRequestQueryParams() {
-    return m_sRequestQueryParams;
+
+const std::vector<WSJCppLightWebHttpRequestQueryValue> &WSJCppLightWebHttpRequest::getRequestQueryParams() {
+    return m_vRequestQueryParams;
 }
 
 // ----------------------------------------------------------------------
@@ -164,7 +183,17 @@ void WSJCppLightWebHttpRequest::parseFirstLine(const std::string &sHeader) {
             std::size_t nFound2 = sParam.find("=");
             std::string sValue = sParam.substr(nFound2+1);
             std::string sName = sParam.substr(0, nFound2);
-            m_sRequestQueryParams[sName] = sValue; // TODO wrong use map for params
+            m_vRequestQueryParams.push_back(WSJCppLightWebHttpRequestQueryValue(
+                this->decodeURIElement(sName), 
+                this->decodeURIElement(sValue)
+            ));
         }
     }
+}
+
+// ----------------------------------------------------------------------
+
+std::string WSJCppLightWebHttpRequest::decodeURIElement(const std::string &sElement) { // TODO move to WSJCppCore
+    WSJCppLog::warn(TAG, "TODO Implement decodeURIElement");
+    return sElement;
 }
