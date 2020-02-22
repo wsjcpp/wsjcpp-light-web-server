@@ -3,6 +3,7 @@
 
 #include <string>
 #include <map>
+#include <json.hpp>
 
 // ---------------------------------------------------------------------
 
@@ -25,6 +26,7 @@ class WSJCppLightWebHttpResponse {
         WSJCppLightWebHttpResponse &cacheSec(int nCacheSec);
 
         void sendText(const std::string &sBody);
+        void sendJson(const nlohmann::json &json);
         void sendEmpty();
         void sendOptions(const std::string &sOptions);
         void sendFile(const std::string &sFilePath);

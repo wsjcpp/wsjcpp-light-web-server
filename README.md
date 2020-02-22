@@ -4,10 +4,11 @@
 
 ## Integrate to your project
 
-Just include this files:
+Include this files:
 
-- src/wsjcpp_core/wsjcpp_core.h
-- src/wsjcpp_core/wsjcpp_core.cpp
+- src.wsjcpp/wsjcpp_core/wsjcpp_core.h
+- src.wsjcpp/wsjcpp_core/wsjcpp_core.cpp
+- src.wsjcpp/nlohmann_json/json.hpp
 - src/wsjcpp_light_web_http_request.h
 - src/wsjcpp_light_web_http_request.cpp
 - src/wsjcpp_light_web_http_response.h
@@ -50,6 +51,9 @@ Will be good for single-web-app (like angular)
 
 Example init, add handler and start server
 ```
+#include <wsjcpp_light_web_http_handler_rewrite_folder.h>
+
+... 
 WSJCppLightWebServer httpServer;
 httpServer.setPort(1234);
 httpServer.setMaxWorkers(1);
@@ -74,6 +78,9 @@ Specific: if file does not exists wil be returned 404 not found
 
 Example init, add handler and start server
 ```
+#include <wsjcpp_light_web_http_handler_web_folder.h>
+
+... 
 WSJCppLightWebServer httpServer;
 httpServer.setPort(1234);
 httpServer.setMaxWorkers(1);

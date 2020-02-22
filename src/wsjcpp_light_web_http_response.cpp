@@ -174,6 +174,26 @@ void WSJCppLightWebHttpResponse::sendText(const std::string &sBody) {
 
 // ----------------------------------------------------------------------
 
+void WSJCppLightWebHttpResponse::sendJson(const nlohmann::json &json) {
+    m_sDataType = "application/json";
+    std::string sBody = json.dump();
+    std::string sResponse = prepareHeaders(sBody.length())
+        + "\r\n" + sBody;
+    
+    if (m_bClosed) {
+        WSJCppLog::warn(TAG, "Already sended response");
+        return;
+    }
+    m_bClosed = true;
+    
+    WSJCppLog::info(TAG, "\nResponse: \n>>>\n" + sResponse + "\n<<<");
+
+    send(m_nSockFd, sResponse.c_str(), sResponse.length(),0);
+    close(m_nSockFd);
+}
+
+// ----------------------------------------------------------------------
+
 void WSJCppLightWebHttpResponse::sendEmpty() {
     this->sendText("");
 }
