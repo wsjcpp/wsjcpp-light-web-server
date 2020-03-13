@@ -94,7 +94,7 @@ After compile and start will be available on `http://localhost:1234/app2/`
 
 Define class:
 
-header-file:
+header-file `http_handler_custom.h`:
 ```
 #ifndef HTTP_HANDLER_CUSTOM_H
 #define HTTP_HANDLER_CUSTOM_H
@@ -113,15 +113,15 @@ class HttpHandlerCustom : WSJCppLightWebHttpHandlerBase {
 #endif // HTTP_HANDLER_CUSTOM_H
 ```
 
-source-file:
+source-file `http_handler_custom.cpp`:
 ```
 #include <wsjcpp_core.h>
+#include "http_handler_custom.h"
 
 // ----------------------------------------------------------------------
 
 HttpHandlerCustom::HttpHandlerCustom()
-    : WSJCppLightWebHttpHandlerBase("custom") {
-
+: WSJCppLightWebHttpHandlerBase("custom") {
     TAG = "HttpHandlerCustom";
 }
 
@@ -147,7 +147,7 @@ bool HttpHandlerCustom::handle(const std::string &sWorkerId, WSJCppLightWebHttpR
     std::string sRequestPath = pRequest->getRequestPath();
     // WSJCppLog::warn(_tag, sRequestPath);
     
-    WSJCppLightWebHttpResponse resp(pRequest->sockFd());
+    WSJCppLightWebHttpResponse resp(pRequest->getSockFd());
     if (sRequestPath == "/custom" || sRequestPath == "/custom/") {
         resp.cacheSec(60).ok().sendText(
             "<h1>This is custom</h1>"
