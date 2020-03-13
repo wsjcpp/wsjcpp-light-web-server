@@ -99,12 +99,12 @@ bool UnitTestParseHttpRequest::run() {
     }, "/2/", "POST", "{\"some\":1}", "HTTP/1.1", {}));
 
     tests.push_back(LTest(4, "some-address4", { 
-        LPartsOfRequest("GET /query?somebook=Hello%20sss&somebook=Hello%20ddd&somebook2=dmsf&p4=11_-%dk123 HTTP/1.1\n", false),
+        LPartsOfRequest("GET /query?somebook=Hello%20sss&somebook=Hello%20ddd&somebook2=dmsf&p4=11_-%25dk123 HTTP/1.1\n", false),
         LPartsOfRequest("Host: www.w3.org\n", false),
         LPartsOfRequest("\n", true),
     }, "/query", "GET", "", "HTTP/1.1", {
-        LPartsOfRequestQueryParam("somebook", "Hello%20sss"),
-        LPartsOfRequestQueryParam("somebook", "Hello%20ddd"),
+        LPartsOfRequestQueryParam("somebook", "Hello sss"),
+        LPartsOfRequestQueryParam("somebook", "Hello ddd"),
         LPartsOfRequestQueryParam("somebook2", "dmsf"),
         LPartsOfRequestQueryParam("p4", "11_-%dk123")
     }));
