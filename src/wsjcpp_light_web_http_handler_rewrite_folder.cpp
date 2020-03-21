@@ -39,8 +39,10 @@ bool WSJCppLightWebHttpHandlerRewriteFolder::handle(const std::string &sWorkerId
     std::string _tag = TAG + "-" + sWorkerId;
     std::string sRequestPath = pRequest->getRequestPath();
     // WSJCppLog::warn(_tag, pRequest->requestPath());
+    std::string sRequestPath2 = sRequestPath.substr(m_sPrefixPath.length(), sRequestPath.length() - m_sPrefixPath.length());
+    std::string sFilePath = m_sWebFolder + sRequestPath2;
     
-    std::string sFilePath = m_sWebFolder + sRequestPath;
+    std::string sFilePath = m_sWebFolder + sRequestPath2;
     if (WSJCppCore::fileExists(sFilePath)) {
         WSJCppLightWebHttpResponse resp(pRequest->getSockFd());
         resp.cacheSec(60).ok().sendFile(sFilePath);
