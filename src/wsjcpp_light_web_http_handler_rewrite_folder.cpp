@@ -7,8 +7,8 @@ WSJCppLightWebHttpHandlerRewriteFolder::WSJCppLightWebHttpHandlerRewriteFolder(c
 : WSJCppLightWebHttpHandlerBase("rewrite-folder") {
 
     TAG = "WSJCppLightWebHttpHandlerRewriteFolder";
-    m_sPrefixPath = sPrefixPath;
-    m_sWebFolder = sWebFolder;
+    m_sPrefixPath = WSJCppCore::doNormalizePath(sPrefixPath + "/");
+    m_sWebFolder = WSJCppCore::doNormalizePath(sWebFolder + "/");
 }
 
 // ----------------------------------------------------------------------
@@ -39,9 +39,9 @@ bool WSJCppLightWebHttpHandlerRewriteFolder::handle(const std::string &sWorkerId
     std::string _tag = TAG + "-" + sWorkerId;
     std::string sRequestPath = pRequest->getRequestPath();
     // WSJCppLog::warn(_tag, pRequest->requestPath());
+
+    // cat subfolder
     std::string sRequestPath2 = sRequestPath.substr(m_sPrefixPath.length(), sRequestPath.length() - m_sPrefixPath.length());
-    std::string sFilePath = m_sWebFolder + sRequestPath2;
-    
     std::string sFilePath = m_sWebFolder + sRequestPath2;
     if (WSJCppCore::fileExists(sFilePath)) {
         WSJCppLightWebHttpResponse resp(pRequest->getSockFd());

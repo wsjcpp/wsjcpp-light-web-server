@@ -7,8 +7,8 @@ WSJCppLightWebHttpHandlerWebFolder::WSJCppLightWebHttpHandlerWebFolder(const std
 : WSJCppLightWebHttpHandlerBase("web-folder") {
 
     TAG = "WSJCppLightWebHttpHandlerWebFolder";
-    m_sPrefixPath = sPrefixPath;
-    m_sWebFolder = sWebFolder;
+    m_sPrefixPath = WSJCppCore::doNormalizePath(sPrefixPath + "/");
+    m_sWebFolder = WSJCppCore::doNormalizePath(sWebFolder + "/");
 }
 
 // ----------------------------------------------------------------------
@@ -38,11 +38,15 @@ bool WSJCppLightWebHttpHandlerWebFolder::canHandle(const std::string &sWorkerId,
 bool WSJCppLightWebHttpHandlerWebFolder::handle(const std::string &sWorkerId, WSJCppLightWebHttpRequest *pRequest) {
     std::string _tag = TAG + "-" + sWorkerId;
     std::string sRequestPath = pRequest->getRequestPath();
-    // WSJCppLog::warn(_tag, pRequest->requestPath());
-    if (sRequestPath == "/") {
-        sRequestPath = "/index.html";
+    // WSJCppLog::warn(_tag, sRequestPath);
+    std::string sRequestPath2 = sRequestPath.substr(m_sPrefixPath.length(), sRequestPath.length() - m_sPrefixPath.length());
+    // WSJCppLog::warn(_tag, sRequestPath2);
+    if (sRequestPath2 == "") {
+        sRequestPath2 = "index.html";
     }
-    std::string sFilePath = m_sWebFolder + sRequestPath;
+    std::string sFilePath = m_sWebFolder + sRequestPath2;
+    // WSJCppLog::warn(_tag, sFilePath);
+    
     if (WSJCppCore::fileExists(sFilePath)) {
         WSJCppLightWebHttpResponse resp(pRequest->getSockFd());
         resp.cacheSec(60).ok().sendFile(sFilePath);
