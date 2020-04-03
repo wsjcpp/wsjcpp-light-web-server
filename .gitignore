@@ -3,3 +3,4 @@ wsjcpp-light-web-server
 .logs/*
 __pycache__
 .vscode/*
+highload-tests/*.log

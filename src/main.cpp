@@ -27,7 +27,7 @@ int main(int argc, const char* argv[]) {
 
     WSJCppLightWebServer httpServer;
     httpServer.setPort(1234);
-    httpServer.setMaxWorkers(1);
+    httpServer.setMaxWorkers(4);
     if (sType == "folder") {
         httpServer.addHandler((WSJCppLightWebHttpHandlerBase *)new WSJCppLightWebHttpHandlerWebFolder("/app/", sDir));
         httpServer.addHandler((WSJCppLightWebHttpHandlerBase *)new WSJCppLightWebHttpHandlerWebFolder("/", sDir));
