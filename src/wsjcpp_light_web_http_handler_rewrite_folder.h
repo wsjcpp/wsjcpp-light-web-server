@@ -3,7 +3,7 @@
 
 #include <wsjcpp_light_web_server.h>
 
-class WSJCppLightWebHttpHandlerRewriteFolder : WSJCppLightWebHttpHandlerBase {
+class WSJCppLightWebHttpHandlerRewriteFolder : public WSJCppLightWebHttpHandlerBase {
     public:
         WSJCppLightWebHttpHandlerRewriteFolder(const std::string &sPrefixPath, const std::string &sWebFolder);
         virtual bool canHandle(const std::string &sWorkerId, WSJCppLightWebHttpRequest *pRequest);

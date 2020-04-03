@@ -29,11 +29,11 @@ int main(int argc, const char* argv[]) {
     httpServer.setPort(1234);
     httpServer.setMaxWorkers(4);
     if (sType == "folder") {
-        httpServer.addHandler((WSJCppLightWebHttpHandlerBase *)new WSJCppLightWebHttpHandlerWebFolder("/app/", sDir));
-        httpServer.addHandler((WSJCppLightWebHttpHandlerBase *)new WSJCppLightWebHttpHandlerWebFolder("/", sDir));
+        httpServer.addHandler(new WSJCppLightWebHttpHandlerWebFolder("/app/", sDir));
+        httpServer.addHandler(new WSJCppLightWebHttpHandlerWebFolder("/", sDir));
     } else if (sType == "rewrite") {
-        httpServer.addHandler((WSJCppLightWebHttpHandlerBase *)new WSJCppLightWebHttpHandlerRewriteFolder("/app/", sDir));
-        httpServer.addHandler((WSJCppLightWebHttpHandlerBase *)new WSJCppLightWebHttpHandlerRewriteFolder("/", sDir));
+        httpServer.addHandler(new WSJCppLightWebHttpHandlerRewriteFolder("/app/", sDir));
+        httpServer.addHandler(new WSJCppLightWebHttpHandlerRewriteFolder("/", sDir));
     }
     httpServer.startSync();
     return 0;

@@ -26,6 +26,13 @@ Include this files:
 $ wsjcpp install https://github.com/wsjcpp/wsjcpp-light-web-server:master
 ```
 
+Fast generate handler:
+
+```
+$ wsjcpp generate WsjcppLightWebHttpHandler SomePage
+```
+So will be generated sample class 'LightWebHttpHandlerSomePage' with TODO
+
 ## Examples
 
 ### Example for simular rewrute_rules

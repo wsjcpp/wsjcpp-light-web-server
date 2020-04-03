@@ -66,6 +66,10 @@ distribution:
   - source-file: "src/wsjcpp_light_web_server.cpp"
     target-file: "wsjcpp_light_web_server.cpp"
     type: "source-code"
+  - source-file: "scripts.wsjcpp/generate.WsjcppLightWebHttpHandler"
+    target-file: "generate.WsjcppLightWebHttpHandler"
+    type: "safe-scripting-generate"
+
 unit-tests:
   cases:
     - name: "ParseHttpRequest"
