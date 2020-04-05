@@ -36,11 +36,11 @@ concat content_header "#ifndef " ifndef_header "
 
 #include <wsjcpp_light_web_server.h>
 
-class " class_name " : public WSJCppLightWebHttpHandlerBase {
+class " class_name " : public WsjcppLightWebHttpHandlerBase {
     public:
         " class_name "();
-        virtual bool canHandle(const std::string &sWorkerId, WSJCppLightWebHttpRequest *pRequest);
-        virtual bool handle(const std::string &sWorkerId, WSJCppLightWebHttpRequest *pRequest);
+        virtual bool canHandle(const std::string &sWorkerId, WsjcppLightWebHttpRequest *pRequest);
+        virtual bool handle(const std::string &sWorkerId, WsjcppLightWebHttpRequest *pRequest);
 
     private:
         std::string TAG;
@@ -58,29 +58,29 @@ concat content_source  "
 // " class_name "
 
 " class_name "::" class_name "() 
-: WSJCppLightWebHttpHandlerBase(\"" http_handler_name "\") {
+: WsjcppLightWebHttpHandlerBase(\"" http_handler_name "\") {
     TAG = \"" class_name "\";
 }
 
 // ---------------------------------------------------------------------
 
-bool " class_name "::canHandle(const std::string &sWorkerId, WSJCppLightWebHttpRequest *pRequest) {
+bool " class_name "::canHandle(const std::string &sWorkerId, WsjcppLightWebHttpRequest *pRequest) {
     std::string _tag = TAG + \"-\" + sWorkerId;
     std::string sRequestPath = pRequest->getRequestPath();
-    WSJCppLog::warn(_tag, \"canHandle: \" + sRequestPath);
+    WsjcppLog::warn(_tag, \"canHandle: \" + sRequestPath);
     
     // TODO
-    WSJCppLog::err(TAG, \"Not implemented\");
+    WsjcppLog::err(TAG, \"Not implemented\");
     return false;
 }
 
 // ---------------------------------------------------------------------
 
-bool " class_name "::handle(const std::string &sWorkerId, WSJCppLightWebHttpRequest *pRequest) {
+bool " class_name "::handle(const std::string &sWorkerId, WsjcppLightWebHttpRequest *pRequest) {
     std::string _tag = TAG + \"-\" + sWorkerId;
     std::string sRequestPath = pRequest->getRequestPath();
-    WSJCppLog::warn(_tag, sRequestPath);
-    WSJCppLightWebHttpResponse resp(pRequest->getSockFd());
+    WsjcppLog::warn(_tag, sRequestPath);
+    WsjcppLightWebHttpResponse resp(pRequest->getSockFd());
     resp.noCache().notImplemented().sendEmpty();
     return true;
 }

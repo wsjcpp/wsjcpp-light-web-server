@@ -46,7 +46,7 @@ RewriteRule . index.html
 
 Contains base handler:
 ```
-WSJCppLightWebHttpHandlerRewriteFolder(sPrefixPath, sDirPath)
+WsjcppLightWebHttpHandlerRewriteFolder(sPrefixPath, sDirPath)
 ```
 Where
 * sPrefixPath - like "/app1/" -> "http://localhost:1234/app1/"
@@ -61,10 +61,10 @@ Example init, add handler and start server
 #include <wsjcpp_light_web_http_handler_rewrite_folder.h>
 
 ... 
-WSJCppLightWebServer httpServer;
+WsjcppLightWebServer httpServer;
 httpServer.setPort(1234);
 httpServer.setMaxWorkers(1);
-httpServer.addHandler((WSJCppLightWebHttpHandlerBase *)new WSJCppLightWebHttpHandlerRewriteFolder("/app1/", "./web"));
+httpServer.addHandler((WsjcppLightWebHttpHandlerBase *)new WsjcppLightWebHttpHandlerRewriteFolder("/app1/", "./web"));
 httpServer.startSync(); // this method will be hold current thread, if you with you can call just start/stop command
 ```
 
@@ -74,7 +74,7 @@ After compile and start will be available on `http://localhost:1234/app1/`
 
 Contains base handler:
 ```
-WSJCppLightWebHttpHandlerWebFolder(sPrefixPath, sDirPath)
+WsjcppLightWebHttpHandlerWebFolder(sPrefixPath, sDirPath)
 ```
 
 Where
@@ -88,10 +88,10 @@ Example init, add handler and start server
 #include <wsjcpp_light_web_http_handler_web_folder.h>
 
 ... 
-WSJCppLightWebServer httpServer;
+WsjcppLightWebServer httpServer;
 httpServer.setPort(1234);
 httpServer.setMaxWorkers(1);
-httpServer.addHandler((WSJCppLightWebHttpHandlerBase *)new WSJCppLightWebHttpHandlerWebFolder("/app2/", "./web"));
+httpServer.addHandler((WsjcppLightWebHttpHandlerBase *)new WsjcppLightWebHttpHandlerWebFolder("/app2/", "./web"));
 httpServer.startSync(); // this method will be hold current thread, if you with you can call just start/stop command
 ```
 
@@ -108,11 +108,11 @@ header-file `http_handler_custom.h`:
 
 #include <wsjcpp_light_web_server.h>
 
-class HttpHandlerCustom : WSJCppLightWebHttpHandlerBase {
+class HttpHandlerCustom : WsjcppLightWebHttpHandlerBase {
     public:
         HttpHandlerCustom();
-        virtual bool canHandle(const std::string &sWorkerId, WSJCppLightWebHttpRequest *pRequest);
-        virtual bool handle(const std::string &sWorkerId, WSJCppLightWebHttpRequest *pRequest);
+        virtual bool canHandle(const std::string &sWorkerId, WsjcppLightWebHttpRequest *pRequest);
+        virtual bool handle(const std::string &sWorkerId, WsjcppLightWebHttpRequest *pRequest);
 
     private:
         std::string TAG;
@@ -128,13 +128,13 @@ source-file `http_handler_custom.cpp`:
 // ----------------------------------------------------------------------
 
 HttpHandlerCustom::HttpHandlerCustom()
-: WSJCppLightWebHttpHandlerBase("custom") {
+: WsjcppLightWebHttpHandlerBase("custom") {
     TAG = "HttpHandlerCustom";
 }
 
 // ----------------------------------------------------------------------
 
-bool HttpHandlerCustom::canHandle(const std::string &sWorkerId, WSJCppLightWebHttpRequest *pRequest) {
+bool HttpHandlerCustom::canHandle(const std::string &sWorkerId, WsjcppLightWebHttpRequest *pRequest) {
     std::string _tag = TAG + "-" + sWorkerId;
     std::string sRequestPath = pRequest->getRequestPath();
 
@@ -149,12 +149,12 @@ bool HttpHandlerCustom::canHandle(const std::string &sWorkerId, WSJCppLightWebHt
 
 // ----------------------------------------------------------------------
 
-bool HttpHandlerCustom::handle(const std::string &sWorkerId, WSJCppLightWebHttpRequest *pRequest) {
+bool HttpHandlerCustom::handle(const std::string &sWorkerId, WsjcppLightWebHttpRequest *pRequest) {
     std::string _tag = TAG + "-" + sWorkerId;
     std::string sRequestPath = pRequest->getRequestPath();
-    // WSJCppLog::warn(_tag, sRequestPath);
+    // WsjcppLog::warn(_tag, sRequestPath);
     
-    WSJCppLightWebHttpResponse resp(pRequest->getSockFd());
+    WsjcppLightWebHttpResponse resp(pRequest->getSockFd());
     if (sRequestPath == "/custom" || sRequestPath == "/custom/") {
         resp.cacheSec(60).ok().sendText(
             "<h1>This is custom</h1>"
@@ -175,10 +175,10 @@ bool HttpHandlerCustom::handle(const std::string &sWorkerId, WSJCppLightWebHttpR
 Example init, add handler and start server
 __order is important! Server will call canHandle & handle in same order as addHandler called__
 ```
-WSJCppLightWebServer httpServer;
+WsjcppLightWebServer httpServer;
 httpServer.setPort(1234);
 httpServer.setMaxWorkers(1);
-httpServer.addHandler((WSJCppLightWebHttpHandlerBase *)new HttpHandlerCustom());
-httpServer.addHandler((WSJCppLightWebHttpHandlerBase *)new WSJCppLightWebHttpHandlerRewriteFolder("/", "./web"));
+httpServer.addHandler((WsjcppLightWebHttpHandlerBase *)new HttpHandlerCustom());
+httpServer.addHandler((WsjcppLightWebHttpHandlerBase *)new WsjcppLightWebHttpHandlerRewriteFolder("/", "./web"));
 httpServer.startSync(); // this method will be hold current thread, if you with you can call just start/stop command
 ```

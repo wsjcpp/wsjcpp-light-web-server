@@ -3,10 +3,10 @@
 #include <wsjcpp_core.h>
 #include <wsjcpp_light_web_http_request.h>
 
-REGISTRY_UNIT_TEST(UnitTestParseHttpRequest)
+REGISTRY_WSJCPP_UNIT_TEST(UnitTestParseHttpRequest)
 
 UnitTestParseHttpRequest::UnitTestParseHttpRequest()
-    : WSJCppUnitTestBase("UnitTestParseHttpRequest") {
+    : WsjcppUnitTestBase("UnitTestParseHttpRequest") {
 }
 
 // ---------------------------------------------------------------------
@@ -111,7 +111,7 @@ bool UnitTestParseHttpRequest::run() {
 
     for (int i = 0; i < tests.size(); i++) {
         LTest test = tests[i];
-        WSJCppLightWebHttpRequest request(test.sockFd, test.address);
+        WsjcppLightWebHttpRequest request(test.sockFd, test.address);
         std::string sNTest = "test" + std::to_string(i) + "#";
 
         compareS(bTestSuccess, sNTest + " request address", request.getAddress(), test.address);
@@ -127,9 +127,9 @@ bool UnitTestParseHttpRequest::run() {
         compareS(bTestSuccess, sNTest + " request expected body", request.getRequestBody(), test.expectedBody);
         compareS(bTestSuccess, sNTest + " request expected body", request.getRequestHttpVersion(), test.expectedHttpVersion);
 
-        std::vector<WSJCppLightWebHttpRequestQueryValue> params = request.getRequestQueryParams();
+        std::vector<WsjcppLightWebHttpRequestQueryValue> params = request.getRequestQueryParams();
         for (int i = 0; i < params.size(); i++) {
-            WSJCppLightWebHttpRequestQueryValue qv = params[i];
+            WsjcppLightWebHttpRequestQueryValue qv = params[i];
             std::string sExpectedName = "";
             std::string sExpectedValue = "";
             if (i < test.expectedQueryParams.size()) {

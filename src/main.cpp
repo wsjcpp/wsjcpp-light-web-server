@@ -7,11 +7,11 @@ int main(int argc, const char* argv[]) {
     std::string TAG = "MAIN";
     std::string appName = std::string(WSJCPP_NAME);
     std::string appVersion = std::string(WSJCPP_VERSION);
-    if (!WSJCppCore::dirExists(".logs")) {
-        WSJCppCore::makeDir(".logs");
+    if (!WsjcppCore::dirExists(".logs")) {
+        WsjcppCore::makeDir(".logs");
     }
-    WSJCppLog::setPrefixLogFile("wsjcpp");
-    WSJCppLog::setLogDirectory(".logs");
+    WsjcppLog::setPrefixLogFile("wsjcpp");
+    WsjcppLog::setLogDirectory(".logs");
 
     if (argc != 3) {
         std::cout << "Usage: " << argv[0] << " [folder|rewrite] <dir>" << std::endl;
@@ -25,15 +25,15 @@ int main(int argc, const char* argv[]) {
 
     std::string sDir = std::string(argv[2]);
 
-    WSJCppLightWebServer httpServer;
+    WsjcppLightWebServer httpServer;
     httpServer.setPort(1234);
     httpServer.setMaxWorkers(4);
     if (sType == "folder") {
-        httpServer.addHandler(new WSJCppLightWebHttpHandlerWebFolder("/app/", sDir));
-        httpServer.addHandler(new WSJCppLightWebHttpHandlerWebFolder("/", sDir));
+        httpServer.addHandler(new WsjcppLightWebHttpHandlerWebFolder("/app/", sDir));
+        httpServer.addHandler(new WsjcppLightWebHttpHandlerWebFolder("/", sDir));
     } else if (sType == "rewrite") {
-        httpServer.addHandler(new WSJCppLightWebHttpHandlerRewriteFolder("/app/", sDir));
-        httpServer.addHandler(new WSJCppLightWebHttpHandlerRewriteFolder("/", sDir));
+        httpServer.addHandler(new WsjcppLightWebHttpHandlerRewriteFolder("/app/", sDir));
+        httpServer.addHandler(new WsjcppLightWebHttpHandlerRewriteFolder("/", sDir));
     }
     httpServer.startSync();
     return 0;
