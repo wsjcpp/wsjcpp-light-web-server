@@ -12,22 +12,35 @@ int main(int argc, const char* argv[]) {
     }
     WsjcppLog::setPrefixLogFile("wsjcpp");
     WsjcppLog::setLogDirectory(".logs");
+    std::string sUsage = "Usage: " + std::string(argv[0]) + " [folder|rewrite] <dir> <port>";
 
-    if (argc != 3) {
-        std::cout << "Usage: " << argv[0] << " [folder|rewrite] <dir>" << std::endl;
+    if (argc != 4) {
+        std::cout << sUsage << std::endl;
         return -1;
     }
     std::string sType = std::string(argv[1]);
     if (sType != "folder" && sType != "rewrite") {
-        std::cout << "Usage: " << argv[0] << " [folder|rewrite] <dir>" << std::endl;
+        std::cout << sUsage << std::endl;
         return -1;
     }
 
     std::string sDir = std::string(argv[2]);
+    std::string sPort = std::string(argv[3]);
+    int nPort = std::atoi(sPort.c_str());
+    if (nPort < 10) {
+        std::cout << "Please set port more then 0" << std::endl;
+        return -1;
+    }
+
+    if (nPort >= 65536) {
+        std::cout << "Please set port less then 65536" << std::endl;
+        return -1;
+    }
 
     WsjcppLightWebServer httpServer;
-    httpServer.setPort(1234);
+    httpServer.setPort(nPort);
     httpServer.setMaxWorkers(4);
+    httpServer.setLoggerEnable(false);
     if (sType == "folder") {
         httpServer.addHandler(new WsjcppLightWebHttpHandlerWebFolder("/app/", sDir));
         httpServer.addHandler(new WsjcppLightWebHttpHandlerWebFolder("/", sDir));

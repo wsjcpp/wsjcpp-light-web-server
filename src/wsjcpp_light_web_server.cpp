@@ -31,7 +31,8 @@ void* wsjcppLightWebServerProcessRequest(void *arg) {
 WsjcppLightWebHttpThreadWorker::WsjcppLightWebHttpThreadWorker(
     const std::string &sName, 
     WsjcppLightWebDequeHttpRequests *pDeque, 
-    std::vector<WsjcppLightWebHttpHandlerBase *> *pVHandlers
+    std::vector<WsjcppLightWebHttpHandlerBase *> *pVHandlers,
+    bool bLoggerEnabled
 ) {
     TAG = "WsjcppLightWebHttpThreadWorker-" + sName;
     m_pDeque = pDeque;
@@ -39,6 +40,7 @@ WsjcppLightWebHttpThreadWorker::WsjcppLightWebHttpThreadWorker(
     m_bStopped = true;
     m_sName = sName;
     m_pVHandlers = pVHandlers;
+    m_bLoggerEnabled = bLoggerEnabled;
 }
 
 // ----------------------------------------------------------------------
@@ -46,7 +48,9 @@ WsjcppLightWebHttpThreadWorker::WsjcppLightWebHttpThreadWorker(
 void WsjcppLightWebHttpThreadWorker::start() {
     m_bStop = false;
     m_bStopped = false;
-    WsjcppLog::info(TAG, "Start");
+    if (m_bLoggerEnabled) {
+        WsjcppLog::info(TAG, "Start");
+    }
     pthread_create(&m_serverThread, NULL, &wsjcppLightWebServerProcessRequest, (void *)this);
 }
 
@@ -65,11 +69,14 @@ void WsjcppLightWebHttpThreadWorker::run() {
             m_bStopped = true;
             return;
         }
-        WsjcppLightWebHttpRequest *pInfo = m_pDeque->popRequest();
+        WsjcppLightWebHttpRequest *pRequest = m_pDeque->popRequest();
         
-        if (pInfo != nullptr) {
-            int nSockFd = pInfo->getSockFd();
-            WsjcppLog::info(TAG, "IP-address: " + pInfo->getAddress());
+        if (pRequest != nullptr) {
+            int nSockFd = pRequest->getSockFd();
+            if (m_bLoggerEnabled) {
+                WsjcppLog::info(TAG, "IP-address: " + pRequest->getAddress());
+            }
+            
 
             // set timeout options
             struct timeval timeout;
@@ -77,13 +84,12 @@ void WsjcppLightWebHttpThreadWorker::run() {
             timeout.tv_usec = 0;
             setsockopt(nSockFd, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout));
 
-            WsjcppLightWebHttpResponse *pResponse = new WsjcppLightWebHttpResponse(nSockFd);
+            WsjcppLightWebHttpResponse *pResponse = new WsjcppLightWebHttpResponse(nSockFd, m_bLoggerEnabled);
             int n;
             // int newsockfd = (long)arg;
             char msg[nMaxPackageSize];
 
             std::string sRequest;
-            
             // std::cout << nSockFd  << ": address = " << info->address() << "\n";
             // read data from socket
             bool bErrorRead = false;
@@ -95,21 +101,24 @@ void WsjcppLightWebHttpThreadWorker::run() {
                 // std::cout << "N: " << n << std::endl;
                 if (n == -1) {
                     bErrorRead = true;
-                    std::cout << nSockFd  << ": error read... \n";
+                    WsjcppLog::err(TAG,  std::to_string(nSockFd) + ": error read... ");
                     break;
                 }
                 if (n == 0) {
                     //close(nSockFd);
                     break;
                 }
-                WsjcppLog::info(TAG, "Readed " + std::to_string(n) + " bytes...");
+                if (m_bLoggerEnabled) {
+                    WsjcppLog::info(TAG, "Readed " + std::to_string(n) + " bytes...");
+                }
+                
                 msg[n] = 0;
                 sRequest = std::string(msg);
 
                 std::string sRecv(msg);
-                pInfo->appendRecieveRequest(sRecv);
+                pRequest->appendRecieveRequest(sRecv);
 
-                if (pInfo->isEnoughAppendReceived()) {
+                if (pRequest->isEnoughAppendReceived()) {
                     break;
                 }
                 // TODO redesign or switch to another socket
@@ -117,26 +126,24 @@ void WsjcppLightWebHttpThreadWorker::run() {
             }
             // TODO read and replace X-Forwarded-IP
             // TODO read and replace X-Forwarded-Host
-            WsjcppLog::info(TAG, "\nRequest: \n>>>\n" + sRequest + "\n<<<");
+            if (m_bLoggerEnabled) {
+                WsjcppLog::info(TAG, "\nRequest: \n>>>\n" + sRequest + "\n<<<");
+            }
             if (bErrorRead) {
                 pResponse->requestTimeout().noCache().sendText(
                     "<html><body><h1>408 Request Time-out</h1>"
                     "Your browser didn't send a complete request in time."
                     "</body></html>"
                 );
-            } else if (pInfo->getRequestType() == "OPTIONS") {
+            } else if (pRequest->getRequestType() == "OPTIONS") {
                 pResponse->ok().sendOptions("OPTIONS, GET, POST");
-            } else if (pInfo->getRequestType() != "GET" && pInfo->getRequestType() != "POST") {
+            } else if (pRequest->getRequestType() != "GET" && pRequest->getRequestType() != "POST") {
                 pResponse->notImplemented().sendEmpty();
             } else {
-                if (!this->handle(pInfo)) {
-                    pResponse->notFound().sendEmpty();
-                } else {
-                    // TODO resp internal error
-                    // this->response(WsjcppLightWebHttpResponse::RESP_INTERNAL_SERVER_ERROR);     
-                }
+                this->handle(pRequest, pResponse);
             }
-            delete pInfo;
+            m_pDeque->addKeepAliveSocket(pRequest->getSockFd());
+            delete pRequest;
             delete pResponse;
         }
         if (m_bStop) {
@@ -149,19 +156,22 @@ void WsjcppLightWebHttpThreadWorker::run() {
 
 // ----------------------------------------------------------------------
 
-bool WsjcppLightWebHttpThreadWorker::handle(WsjcppLightWebHttpRequest *pRequest) {
+void WsjcppLightWebHttpThreadWorker::handle(WsjcppLightWebHttpRequest *pRequest, WsjcppLightWebHttpResponse *pResponse) {
     std::vector<WsjcppLightWebHttpHandlerBase *>::iterator it; 
     for (it = m_pVHandlers->begin(); it < m_pVHandlers->end(); it++) {
         WsjcppLightWebHttpHandlerBase *pHandler = *it;
-        if (pHandler->canHandle(m_sName, pRequest)) {
-            if (pHandler->handle(m_sName, pRequest)) {
-                return true;
-            } else {
+        if (!pHandler->canHandle(m_sName, pRequest)) {
+            continue;
+        }
+        if (!pHandler->handle(m_sName, pRequest, pResponse)) {
+            if (m_bLoggerEnabled) {
                 WsjcppLog::warn(TAG, pHandler->name() + " - could not handle request '" + pRequest->getRequestPath() + "'");
             }
+            pResponse->internalServerError().sendEmpty();
         }
+        return;
     }
-    return false;
+    pResponse->notFound().sendEmpty();
 }
 
 // ----------------------------------------------------------------------
@@ -174,6 +184,7 @@ WsjcppLightWebServer::WsjcppLightWebServer() {
     m_pVHandlers = new std::vector<WsjcppLightWebHttpHandlerBase *>();
     m_bStop = false;
     m_nPort = 8080;
+    m_bLoggerEnabled = false;
 }
 
 // ----------------------------------------------------------------------
@@ -197,6 +208,13 @@ void WsjcppLightWebServer::setMaxWorkers(int nMaxWorkers) {
     } else {
         WsjcppLog::warn(TAG, "Max workers must be 1...100");
     }
+}
+
+// ----------------------------------------------------------------------
+
+void WsjcppLightWebServer::setLoggerEnable(bool bEnable) {
+    m_bLoggerEnabled = bEnable;
+    m_pDeque->setLoggerEnable(bEnable);
 }
 
 // ----------------------------------------------------------------------
@@ -233,7 +251,9 @@ void WsjcppLightWebServer::startSync() {
         socklen_t sosize  = sizeof(clientAddress);
         int nSockFd = accept(m_nSockFd,(struct sockaddr*)&clientAddress,&sosize);
         std::string sAddress = inet_ntoa(clientAddress.sin_addr);
-        WsjcppLog::info(TAG, "Connected " + sAddress);
+        if (m_bLoggerEnabled) {
+            WsjcppLog::info(TAG, "Connected " + sAddress);
+        }
         WsjcppLightWebHttpRequest *pInfo = new WsjcppLightWebHttpRequest(nSockFd, sAddress);
         // info will be removed inside a thread
         m_pDeque->pushRequest(pInfo); // here will be unlocked workers
@@ -283,7 +303,14 @@ void WsjcppLightWebServer::checkAndRestartWorkers() {
         if (m_vWorkers.size() < m_nMaxWorkers) {
             int nSize = m_vWorkers.size();
             for (int i = nSize; i < m_nMaxWorkers; i++) {
-                m_vWorkers.push_back(new WsjcppLightWebHttpThreadWorker("worker" + std::to_string(i), m_pDeque, m_pVHandlers));
+                m_vWorkers.push_back(
+                    new WsjcppLightWebHttpThreadWorker(
+                        "worker" + std::to_string(i), 
+                        m_pDeque, 
+                        m_pVHandlers,
+                        m_bLoggerEnabled
+                    )
+                );
             }
         }
 

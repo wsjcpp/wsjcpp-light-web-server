@@ -7,6 +7,7 @@
 
 WsjcppLightWebDequeHttpRequests::WsjcppLightWebDequeHttpRequests() {
     TAG = "WsjcppLightWebDequeHttpRequests";
+    m_bLoggerEnabled = false;
 }
 
 // ----------------------------------------------------------------------
@@ -30,14 +31,14 @@ WsjcppLightWebHttpRequest *WsjcppLightWebDequeHttpRequests::popRequest() {
 void WsjcppLightWebDequeHttpRequests::pushRequest(WsjcppLightWebHttpRequest *pRequest) {
     {
         std::lock_guard<std::mutex> guard(this->m_mtxDequeRequests);
-        if (m_dequeRequests.size() > 20) {
+        if (m_dequeRequests.size() > 20 && m_bLoggerEnabled) {
             WsjcppLog::warn(TAG, " deque more than " + std::to_string(m_dequeRequests.size()));
         }
         m_dequeRequests.push_front(pRequest);
     }
     
     if (m_dequeRequests.size() == 1) {
-        m_mtxWaiterRequests.unlock();   
+        m_mtxWaiterRequests.unlock();
     }
 }
 
@@ -49,4 +50,16 @@ void WsjcppLightWebDequeHttpRequests::cleanup() {
         delete m_dequeRequests.back();
         m_dequeRequests.pop_back();
     }
+}
+
+// ----------------------------------------------------------------------
+
+void WsjcppLightWebDequeHttpRequests::setLoggerEnable(bool bEnable) {
+    m_bLoggerEnabled = bEnable;
+}
+
+// ----------------------------------------------------------------------
+
+void WsjcppLightWebDequeHttpRequests::addKeepAliveSocket(int m_nSockFd) {
+    WsjcppLog::warn(TAG, "WsjcppLightWebDequeHttpRequests::addKeepAliveSocket not implemented");
 }

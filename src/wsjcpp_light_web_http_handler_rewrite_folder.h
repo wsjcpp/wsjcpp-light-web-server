@@ -7,7 +7,11 @@ class WsjcppLightWebHttpHandlerRewriteFolder : public WsjcppLightWebHttpHandlerB
     public:
         WsjcppLightWebHttpHandlerRewriteFolder(const std::string &sPrefixPath, const std::string &sWebFolder);
         virtual bool canHandle(const std::string &sWorkerId, WsjcppLightWebHttpRequest *pRequest);
-        virtual bool handle(const std::string &sWorkerId, WsjcppLightWebHttpRequest *pRequest);
+        virtual bool handle(
+            const std::string &sWorkerId, 
+            WsjcppLightWebHttpRequest *pRequest,
+            WsjcppLightWebHttpResponse *pResponse
+        );
 
     private:
         std::string TAG;

@@ -15,12 +15,15 @@ class WsjcppLightWebDequeHttpRequests {
         WsjcppLightWebHttpRequest *popRequest();
         void pushRequest(WsjcppLightWebHttpRequest *pRequest);
         void cleanup();
+        void setLoggerEnable(bool bEnable);
+        void addKeepAliveSocket(int m_nSockFd);
 
     private:
         std::string TAG;
 
         std::mutex m_mtxDequeRequests;
         std::mutex m_mtxWaiterRequests;
+        bool m_bLoggerEnabled;
         std::deque<WsjcppLightWebHttpRequest *> m_dequeRequests;
 };
 

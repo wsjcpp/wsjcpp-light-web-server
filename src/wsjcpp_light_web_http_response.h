@@ -11,7 +11,7 @@ class WsjcppLightWebHttpResponse {
     public:
         static std::map<int, std::string> *g_mapReponseDescription;
         
-        WsjcppLightWebHttpResponse(int nSockFd);
+        WsjcppLightWebHttpResponse(int nSockFd, bool bLoggerEnabled);
 
         WsjcppLightWebHttpResponse &ok();
         WsjcppLightWebHttpResponse &badRequest();
@@ -41,6 +41,7 @@ class WsjcppLightWebHttpResponse {
         int m_nSockFd;
         bool m_bClosed;
         int m_nResponseCode;
+        bool m_bLoggerEnabled;
         std::string m_sDataType;
         std::string m_sCacheControl;
         std::string m_sLastModified;

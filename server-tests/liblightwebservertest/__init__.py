@@ -5,8 +5,8 @@ import time
 import signal
 import socket
 
-test_name = 'Start fhq-server'
-p_fhq_server = None
+test_name = 'Start wsjcpp-light-web-server'
+p_server = None
 
 def check_port(host, port):
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -14,12 +14,12 @@ def check_port(host, port):
     return result == 0
 
 def start_server(work_directory, program_args, port):
-    print("Start fhq-server")
-    global p_fhq_server
+    print("Start wsjcpp-light-web-server")
+    global p_server
     wd = os.getcwd()
     print(wd)
     os.chdir(wd + "/" + work_directory)
-    p_fhq_server = subprocess.Popen(program_args)
+    p_server = subprocess.Popen(program_args)
     os.chdir(wd)
 
     wait_max = 20
@@ -42,7 +42,7 @@ def start_server(work_directory, program_args, port):
 
 def stop_server():
     print("Stop fhq-server")
-    global p_fhq_server
-    if p_fhq_server != None:
-        print("Kill process " + str(p_fhq_server.pid))
-        os.kill(p_fhq_server.pid, signal.SIGKILL)
+    global p_server
+    if p_server != None:
+        print("Kill process " + str(p_server.pid))
+        os.kill(p_server.pid, signal.SIGKILL)

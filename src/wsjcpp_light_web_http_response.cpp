@@ -13,8 +13,9 @@ std::map<int, std::string> *WsjcppLightWebHttpResponse::g_mapReponseDescription 
 
 // ----------------------------------------------------------------------
 
-WsjcppLightWebHttpResponse::WsjcppLightWebHttpResponse(int nSockFd) {
+WsjcppLightWebHttpResponse::WsjcppLightWebHttpResponse(int nSockFd, bool bLoggerEnabled) {
     TAG = "WsjcppLightWebHttpResponse";
+    m_bLoggerEnabled = bLoggerEnabled;
     if (WsjcppLightWebHttpResponse::g_mapReponseDescription == nullptr) {
         WsjcppLightWebHttpResponse::g_mapReponseDescription = new std::map<int, std::string>();
         WsjcppLightWebHttpResponse::g_mapReponseDescription->insert(std::pair<int, std::string>(200,"HTTP/1.1 200 OK"));
@@ -166,8 +167,10 @@ void WsjcppLightWebHttpResponse::sendText(const std::string &sBody) {
     }
     m_bClosed = true;
     
-    WsjcppLog::info(TAG, "\nResponse: \n>>>\n" + sResponse + "\n<<<");
-
+    if (m_bLoggerEnabled) {
+        WsjcppLog::info(TAG, "\nResponse: \n>>>\n" + sResponse + "\n<<<");
+    }
+    
     send(m_nSockFd, sResponse.c_str(), sResponse.length(),0);
     close(m_nSockFd);
 }

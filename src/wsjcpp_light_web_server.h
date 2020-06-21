@@ -16,7 +16,11 @@ class WsjcppLightWebHttpHandlerBase {
         WsjcppLightWebHttpHandlerBase(const std::string &sName);
         const std::string &name();
         virtual bool canHandle(const std::string &sWorkerId, WsjcppLightWebHttpRequest *pRequest) = 0;
-        virtual bool handle(const std::string &sWorkerId, WsjcppLightWebHttpRequest *pRequest) = 0;
+        virtual bool handle(
+            const std::string &sWorkerId, 
+            WsjcppLightWebHttpRequest *pRequest,
+            WsjcppLightWebHttpResponse *pResponse
+        ) = 0;
 
     private:
         std::string m_sName;
@@ -30,7 +34,8 @@ class WsjcppLightWebHttpThreadWorker {
         WsjcppLightWebHttpThreadWorker(
             const std::string &sName, 
             WsjcppLightWebDequeHttpRequests *pDeque, 
-            std::vector<WsjcppLightWebHttpHandlerBase *> *pVHandlers
+            std::vector<WsjcppLightWebHttpHandlerBase *> *pVHandlers,
+            bool bLoggerEnabled
         );
 
         void start();
@@ -38,13 +43,14 @@ class WsjcppLightWebHttpThreadWorker {
         void run();
 
     private:
-        bool handle(WsjcppLightWebHttpRequest *pRequest);
+        void handle(WsjcppLightWebHttpRequest *pRequest, WsjcppLightWebHttpResponse *pResponse);
         std::string TAG;
         std::string m_sName;
         WsjcppLightWebDequeHttpRequests *m_pDeque;
         std::vector<WsjcppLightWebHttpHandlerBase *> *m_pVHandlers;
         bool m_bStop;
         bool m_bStopped;
+        bool m_bLoggerEnabled;
         pthread_t m_serverThread;
 };
 
@@ -56,6 +62,7 @@ class WsjcppLightWebServer {
         WsjcppLightWebServer();
         void setPort(int nPort);
         void setMaxWorkers(int nMaxWorkers);
+        void setLoggerEnable(bool bEnable);
         void startSync();
         void start();
         void stop();
@@ -68,6 +75,7 @@ class WsjcppLightWebServer {
         std::string TAG;
         WsjcppLightWebDequeHttpRequests *m_pDeque;
         bool m_bStop;
+        bool m_bLoggerEnabled;
 
         int m_nMaxWorkers;
         int m_nPort;

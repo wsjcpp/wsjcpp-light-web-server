@@ -35,7 +35,11 @@ bool WsjcppLightWebHttpHandlerWebFolder::canHandle(const std::string &sWorkerId,
 
 // ----------------------------------------------------------------------
 
-bool WsjcppLightWebHttpHandlerWebFolder::handle(const std::string &sWorkerId, WsjcppLightWebHttpRequest *pRequest) {
+bool WsjcppLightWebHttpHandlerWebFolder::handle(
+    const std::string &sWorkerId, 
+    WsjcppLightWebHttpRequest *pRequest,
+    WsjcppLightWebHttpResponse *pResponse
+) {
     std::string _tag = TAG + "-" + sWorkerId;
     std::string sRequestPath = pRequest->getRequestPath();
     // WsjcppLog::warn(_tag, sRequestPath);
@@ -48,11 +52,9 @@ bool WsjcppLightWebHttpHandlerWebFolder::handle(const std::string &sWorkerId, Ws
     // WsjcppLog::warn(_tag, sFilePath);
     
     if (WsjcppCore::fileExists(sFilePath)) {
-        WsjcppLightWebHttpResponse resp(pRequest->getSockFd());
-        resp.cacheSec(60).ok().sendFile(sFilePath);
+        pResponse->cacheSec(60).ok().sendFile(sFilePath);
     } else {
-        WsjcppLightWebHttpResponse resp(pRequest->getSockFd());
-        resp.noCache().notFound().sendEmpty();
+        pResponse->noCache().notFound().sendEmpty();
     }
     return true;
 }

@@ -14,7 +14,7 @@ TEST_URL = "http://" + SERVER_HOST + ":" + str(1234)
 
 try:
     print(" > > > TESTS: begin ")
-    liblightwebservertest.start_server("../", ["./wsjcpp-light-web-server", "folder", "./web"], 1234)
+    liblightwebservertest.start_server("../", ["./wsjcpp-light-web-server", "folder", "./web", "1234"], 1234)
     print("index.html - testing...")
     index_html = open("../web/index.html", 'r').read()
     r = requests.get(TEST_URL)
@@ -65,19 +65,24 @@ Connection: keep-alive
 
 '''
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    sock.settimeout(0.3)
+    sock.settimeout(0.1)
+    sock.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
+    # sock.setsockopt(socket.SOL_TCP, socket.TCP_KEEPIDLE, 1)
+    sock.setsockopt(socket.SOL_TCP, socket.TCP_KEEPINTVL, 1)
+    sock.setsockopt(socket.SOL_TCP, socket.TCP_KEEPCNT, 1)
     sock.connect((SERVER_HOST, SERVER_PORT))
     print(">>>> send first")
     sock.send(test_keep_alive_request.encode("utf8"))
     r1 = sock.recv(1024)
     r1 = r1.decode("utf8")
     # print(r1)
-    time.sleep(1)
+    time.sleep(2)
     print(">>>> send again by same connection")
-    sock.send(test_keep_alive_request.encode("utf8"))
+    r = sock.send(test_keep_alive_request.encode("utf8"))
+    print(r)
     r2 = sock.recv(1024)
     r2 = r2.decode("utf8")
-    # print(r2)
+    print(r2)
     if len(r1) != len(r2):
         raise Exception("test keep-alive - expected same length. Expected " + str(len(r1)) + " bytes, but got " + str(len(r2)) + " bytes")
 except socket.timeout:
