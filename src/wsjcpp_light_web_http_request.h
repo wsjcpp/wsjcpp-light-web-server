@@ -33,10 +33,12 @@ class WsjcppLightWebHttpRequest {
         bool isEnoughAppendReceived() const;
         
         std::string getAddress() const;
+        const std::string &getRequestData() const;
         std::string getRequestType() const;
         std::string getRequestPath() const;
         std::string getRequestBody() const;
         std::string getRequestHttpVersion() const;
+        const std::string &getHeaderConnection() const; 
         const std::vector<WsjcppLightWebHttpRequestQueryValue> &getRequestQueryParams();
 
     private:
@@ -53,7 +55,8 @@ class WsjcppLightWebHttpRequest {
         bool m_bClosed;
         EnumParserState m_nParserState;
         std::vector<std::string> m_vHeaders;
-        int m_nContentLength;
+        int m_nHeaderContentLength;
+        std::string m_sHeaderConnection;
         std::string m_sUniqueId;
         std::string m_sRequest;
         std::string m_sAddress;
@@ -62,9 +65,6 @@ class WsjcppLightWebHttpRequest {
         std::string m_sRequestBody;
         std::vector<WsjcppLightWebHttpRequestQueryValue> m_vRequestQueryParams;
         std::string m_sRequestHttpVersion;
-
-        std::string m_sResponseCacheControl;
-        std::string m_sLastModified;
 };
 
 #endif // WSJCPP_LIGHT_WEB_HTTP_REQUEST_H

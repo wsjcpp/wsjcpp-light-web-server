@@ -3,6 +3,7 @@
 #include <fstream>
 #include <unistd.h>
 #include <sstream>
+#include <sys/types.h>
 #include <sys/socket.h>
 
 // ----------------------------------------------------------------------
@@ -171,8 +172,7 @@ void WsjcppLightWebHttpResponse::sendText(const std::string &sBody) {
         WsjcppLog::info(TAG, "\nResponse: \n>>>\n" + sResponse + "\n<<<");
     }
     
-    send(m_nSockFd, sResponse.c_str(), sResponse.length(),0);
-    close(m_nSockFd);
+    send(m_nSockFd, sResponse.c_str(), sResponse.length(), 0);
 }
 
 // ----------------------------------------------------------------------
@@ -191,8 +191,7 @@ void WsjcppLightWebHttpResponse::sendJson(const nlohmann::json &json) {
     
     WsjcppLog::info(TAG, "\nResponse: \n>>>\n" + sResponse + "\n<<<");
 
-    send(m_nSockFd, sResponse.c_str(), sResponse.length(),0);
-    close(m_nSockFd);
+    send(m_nSockFd, sResponse.c_str(), sResponse.length(), 0);
 }
 
 // ----------------------------------------------------------------------
@@ -214,11 +213,11 @@ void WsjcppLightWebHttpResponse::sendOptions(const std::string &sOptions) {
         return;
     }
     m_bClosed = true;
-    
-    WsjcppLog::info(TAG, "\nResponse: \n>>>\n" + sResponse + "\n<<<");
+    if (m_bLoggerEnabled) {
+        WsjcppLog::info(TAG, "\nResponse: \n>>>\n" + sResponse + "\n<<<");
+    }
 
-    send(m_nSockFd, sResponse.c_str(), sResponse.length(),0);
-    close(m_nSockFd);
+    send(m_nSockFd, sResponse.c_str(), sResponse.length(), 0);
 }
 
 // ----------------------------------------------------------------------
@@ -232,20 +231,19 @@ void WsjcppLightWebHttpResponse::sendFile(const std::string &sFilePath) {
     char *pData = new char[nSize];
     // std::vector<char> buffer(size);
     if (nSize > 10*1024*1024) {
-        this->payloadTooLarge();
-        this->sendEmpty();
+        this->payloadTooLarge().sendEmpty();
         delete[] pData;
         return;
     }
 
     if (!f.read(pData, nSize)) {
-        this->forbidden();
-        this->sendEmpty();
+        this->forbidden().sendEmpty();
         delete[] pData;
         return;
         // std::cout << sFilePath << "\n filesize: " << nSize << " bytes\n";
     }
 
+    
     this->sendBuffer(sFilePath, pData, nSize);
     delete[] pData;
 }
@@ -266,7 +264,6 @@ void WsjcppLightWebHttpResponse::sendBuffer(const std::string &sFilePath, const 
         return;
     }
     m_bClosed = true;
-    write(m_nSockFd, sResponse.c_str(), sResponse.length());
-    write(m_nSockFd, pBuffer, nBufferSize);
-    close(m_nSockFd);
+    send(m_nSockFd, sResponse.c_str(), sResponse.length(), 0);
+    send(m_nSockFd, pBuffer, nBufferSize, 0);
 }

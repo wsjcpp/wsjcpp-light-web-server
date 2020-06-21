@@ -33,9 +33,8 @@ WsjcppLightWebHttpRequest::WsjcppLightWebHttpRequest(int nSockFd, const std::str
     m_bClosed = false;
     m_sRequest = "";
     m_nParserState = EnumParserState::START;
-    long nSec = WsjcppCore::currentTime_seconds();
-    m_sLastModified = WsjcppCore::formatTimeForWeb(nSec);
-    m_nContentLength = 0;
+    m_nHeaderContentLength = 0;
+    m_sHeaderConnection = "";
 }
 
 // ----------------------------------------------------------------------
@@ -48,6 +47,12 @@ int WsjcppLightWebHttpRequest::getSockFd() const {
 
 std::string WsjcppLightWebHttpRequest::getUniqueId() const {
     return m_sUniqueId;
+}
+
+// ----------------------------------------------------------------------
+
+const std::string &WsjcppLightWebHttpRequest::getRequestData() const {
+    return m_sRequest;
 }
 
 // ----------------------------------------------------------------------
@@ -74,6 +79,12 @@ std::string WsjcppLightWebHttpRequest::getRequestHttpVersion() const {
 
 // ----------------------------------------------------------------------
 
+const std::string &WsjcppLightWebHttpRequest::getHeaderConnection() const {
+    return m_sHeaderConnection;
+}
+
+// ----------------------------------------------------------------------
+
 const std::vector<WsjcppLightWebHttpRequestQueryValue> &WsjcppLightWebHttpRequest::getRequestQueryParams() {
     return m_vRequestQueryParams;
 }
@@ -89,6 +100,7 @@ std::string WsjcppLightWebHttpRequest::getAddress() const {
 void WsjcppLightWebHttpRequest::appendRecieveRequest(const std::string &sRequestPart) {
     m_sRequest += sRequestPart;
     const std::string sContentLengthPrefix = "content-length:";
+    const std::string sConnectionPrefix = "connection:";
     if (m_nParserState == EnumParserState::START) {
         m_vHeaders.clear();
         // WsjcppLog::info(TAG, "START \n>>>\n" + m_sRequest + "\n<<<\n");
@@ -108,10 +120,16 @@ void WsjcppLightWebHttpRequest::appendRecieveRequest(const std::string &sRequest
             m_vHeaders.push_back(sLine);
 
             sLine = WsjcppCore::toLower(sLine);
-            if (!sLine.compare(0, sContentLengthPrefix.size(), sContentLengthPrefix)) {
-                m_nContentLength = atoi(sLine.substr(sContentLengthPrefix.size()).c_str());
+            if (sLine.rfind(sContentLengthPrefix, 0) == 0) {
+                m_nHeaderContentLength = atoi(sLine.substr(sContentLengthPrefix.size()).c_str());
                 // WsjcppLog::warn(TAG, "Content-Length: " + std::to_string(m_nContentLength));
             }
+            if (sLine.rfind(sConnectionPrefix, 0) == 0) {
+                m_sHeaderConnection = sLine.substr(sConnectionPrefix.size());
+                // WsjcppLog::warn(TAG, "Content-Length: " + std::to_string(m_nContentLength));
+            }
+
+            
         }
 
         if (bHeadersEnded) {
@@ -126,9 +144,9 @@ void WsjcppLightWebHttpRequest::appendRecieveRequest(const std::string &sRequest
         }
     }
     
-    if (m_nParserState == EnumParserState::BODY && m_sRequest.length() >= m_nContentLength) {
+    if (m_nParserState == EnumParserState::BODY && m_sRequest.length() >= m_nHeaderContentLength) {
         m_nParserState = EnumParserState::ENDED;
-        m_sRequestBody = m_sRequest.substr(0, m_nContentLength);
+        m_sRequestBody = m_sRequest.substr(0, m_nHeaderContentLength);
     }
 }
 

@@ -76,13 +76,14 @@ void WsjcppLightWebHttpThreadWorker::run() {
             if (m_bLoggerEnabled) {
                 WsjcppLog::info(TAG, "IP-address: " + pRequest->getAddress());
             }
-            
 
             // set timeout options
             struct timeval timeout;
             timeout.tv_sec = 1; // 1 seconds timeout
             timeout.tv_usec = 0;
-            setsockopt(nSockFd, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout));
+            int nResult = setsockopt(nSockFd, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout));
+            // TODO check nResult
+            // setsockopt() with SO_NOSIGPIPE
 
             WsjcppLightWebHttpResponse *pResponse = new WsjcppLightWebHttpResponse(nSockFd, m_bLoggerEnabled);
             int n;
@@ -101,11 +102,10 @@ void WsjcppLightWebHttpThreadWorker::run() {
                 // std::cout << "N: " << n << std::endl;
                 if (n == -1) {
                     bErrorRead = true;
-                    WsjcppLog::err(TAG,  std::to_string(nSockFd) + ": error read... ");
+                    WsjcppLog::err(TAG,  std::to_string(nSockFd) + ": error read... after: " + pRequest->getRequestData());
                     break;
-                }
-                if (n == 0) {
-                    //close(nSockFd);
+                } else if (n == 0) {
+                    // close(nSockFd);
                     break;
                 }
                 if (m_bLoggerEnabled) {
@@ -142,7 +142,12 @@ void WsjcppLightWebHttpThreadWorker::run() {
             } else {
                 this->handle(pRequest, pResponse);
             }
-            m_pDeque->addKeepAliveSocket(pRequest->getSockFd());
+            if (pRequest->getHeaderConnection() == "keep-alive") {
+                // m_pDeque->addKeepAliveSocket(pRequest->getSockFd());
+                close(pRequest->getSockFd());
+            } else {
+                close(pRequest->getSockFd());
+            }
             delete pRequest;
             delete pResponse;
         }
@@ -185,6 +190,7 @@ WsjcppLightWebServer::WsjcppLightWebServer() {
     m_bStop = false;
     m_nPort = 8080;
     m_bLoggerEnabled = false;
+    m_nBacklog = 5;
 }
 
 // ----------------------------------------------------------------------
@@ -220,7 +226,7 @@ void WsjcppLightWebServer::setLoggerEnable(bool bEnable) {
 // ----------------------------------------------------------------------
 
 void WsjcppLightWebServer::startSync() {
-    
+    signal(SIGCHLD,SIG_IGN);
     m_nSockFd = socket(AF_INET, SOCK_STREAM, 0);
     if (m_nSockFd <= 0) {
         WsjcppLog::err(TAG, "Failed to establish socket connection");
@@ -240,20 +246,26 @@ void WsjcppLightWebServer::startSync() {
         WsjcppLog::err(TAG, "Error binding to port " + std::to_string(m_nPort));
         return;
     }
-    listen(m_nSockFd, 5);
+    listen(m_nSockFd, m_nBacklog);
+    signal(SIGCHLD, SIG_IGN);
     WsjcppLog::info("LightHttpServer", "Light Http Server started on " + std::to_string(m_nPort) + " port.");
 
     std::string str;
     m_bStop = false;
     this->checkAndRestartWorkers();
-    while (!m_bStop) { // or problem can be here
+    while (!m_bStop) {
         struct sockaddr_in clientAddress;
         socklen_t sosize  = sizeof(clientAddress);
         int nSockFd = accept(m_nSockFd,(struct sockaddr*)&clientAddress,&sosize);
         std::string sAddress = inet_ntoa(clientAddress.sin_addr);
         if (m_bLoggerEnabled) {
-            WsjcppLog::info(TAG, "Connected " + sAddress);
+            WsjcppLog::info(TAG, "Connected " + sAddress + ":" + std::to_string(clientAddress.sin_port));
         }
+        int option_value = 1; /* Set NOSIGPIPE to ON */
+        if (setsockopt (nSockFd, SOL_SOCKET, SO_NOSIGPIPE, &option_value, sizeof (option_value)) < 0) {
+            // perror ("setsockopt(,,SO_NOSIGPIPE)");
+        }
+
         WsjcppLightWebHttpRequest *pInfo = new WsjcppLightWebHttpRequest(nSockFd, sAddress);
         // info will be removed inside a thread
         m_pDeque->pushRequest(pInfo); // here will be unlocked workers

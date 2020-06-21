@@ -83,6 +83,7 @@ class WsjcppLightWebServer {
         std::vector<WsjcppLightWebHttpThreadWorker *> m_vWorkers;
 
         int m_nSockFd;
+        int m_nBacklog;
         struct sockaddr_in m_serverAddress;
         pthread_t m_serverThread;
 };

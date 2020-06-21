@@ -40,6 +40,7 @@ int main(int argc, const char* argv[]) {
     WsjcppLightWebServer httpServer;
     httpServer.setPort(nPort);
     httpServer.setMaxWorkers(4);
+    // httpServer.setLoggerEnable(true);
     httpServer.setLoggerEnable(false);
     if (sType == "folder") {
         httpServer.addHandler(new WsjcppLightWebHttpHandlerWebFolder("/app/", sDir));

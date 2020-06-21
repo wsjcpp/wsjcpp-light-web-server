@@ -29,15 +29,17 @@ WsjcppLightWebHttpRequest *WsjcppLightWebDequeHttpRequests::popRequest() {
 // ----------------------------------------------------------------------
 
 void WsjcppLightWebDequeHttpRequests::pushRequest(WsjcppLightWebHttpRequest *pRequest) {
+    int nPreviousSize = 0;
     {
         std::lock_guard<std::mutex> guard(this->m_mtxDequeRequests);
-        if (m_dequeRequests.size() > 20 && m_bLoggerEnabled) {
-            WsjcppLog::warn(TAG, " deque more than " + std::to_string(m_dequeRequests.size()));
+        nPreviousSize = m_dequeRequests.size();
+        if (nPreviousSize > 20 && m_bLoggerEnabled) {
+            WsjcppLog::warn(TAG, " deque more than " + std::to_string(nPreviousSize));
         }
         m_dequeRequests.push_front(pRequest);
     }
     
-    if (m_dequeRequests.size() == 1) {
+    if (nPreviousSize == 0) {
         m_mtxWaiterRequests.unlock();
     }
 }
