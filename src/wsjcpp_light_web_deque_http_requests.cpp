@@ -14,7 +14,7 @@ WsjcppLightWebDequeHttpRequests::WsjcppLightWebDequeHttpRequests() {
 
 WsjcppLightWebHttpRequest *WsjcppLightWebDequeHttpRequests::popRequest() {
     if (m_dequeRequests.size() == 0) {
-        m_mtxWaiterRequests.lock();
+        m_mtxWaiterRequests.try_lock();
     }
     std::lock_guard<std::mutex> guard(this->m_mtxDequeRequests);
     WsjcppLightWebHttpRequest *pRequest = nullptr;
