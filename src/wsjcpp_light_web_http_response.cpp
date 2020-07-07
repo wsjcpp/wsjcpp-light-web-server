@@ -264,6 +264,6 @@ void WsjcppLightWebHttpResponse::sendBuffer(const std::string &sFilePath, const 
         return;
     }
     m_bClosed = true;
-    send(m_nSockFd, sResponse.c_str(), sResponse.length(), 0);
-    send(m_nSockFd, pBuffer, nBufferSize, 0);
+    send(m_nSockFd, sResponse.c_str(), sResponse.length(), MSG_NOSIGNAL);
+    send(m_nSockFd, pBuffer, nBufferSize, MSG_NOSIGNAL);
 }

@@ -64,6 +64,7 @@ class WsjcppLightWebServer {
         void setMaxWorkers(int nMaxWorkers);
         void setLoggerEnable(bool bEnable);
         void startSync();
+        int startSync2();
         void start();
         void stop();
         void addHandler(WsjcppLightWebHttpHandlerBase *pHandler);
@@ -72,6 +73,7 @@ class WsjcppLightWebServer {
         void checkAndRestartWorkers();
         void stopAndRemoveWorkers();
         std::string readAddress(int nSockFd);
+        void logNewConnection(sockaddr_storage &clientAddress, socklen_t &clientAddressLength);
         std::string TAG;
         WsjcppLightWebDequeHttpRequests *m_pDeque;
         bool m_bStop;
@@ -79,10 +81,11 @@ class WsjcppLightWebServer {
 
         int m_nMaxWorkers;
         int m_nPort;
+        std::string m_sPort;
         std::vector<WsjcppLightWebHttpHandlerBase *> *m_pVHandlers;
         std::vector<WsjcppLightWebHttpThreadWorker *> m_vWorkers;
 
-        int m_nSockFd;
+        int m_nListenerSockFd;
         int m_nBacklog;
         struct sockaddr_in m_serverAddress;
         pthread_t m_serverThread;

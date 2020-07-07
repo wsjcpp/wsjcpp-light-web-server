@@ -40,8 +40,7 @@ int main(int argc, const char* argv[]) {
     WsjcppLightWebServer httpServer;
     httpServer.setPort(nPort);
     httpServer.setMaxWorkers(4);
-    // httpServer.setLoggerEnable(true);
-    httpServer.setLoggerEnable(false);
+    httpServer.setLoggerEnable(true);
     if (sType == "folder") {
         httpServer.addHandler(new WsjcppLightWebHttpHandlerWebFolder("/app/", sDir));
         httpServer.addHandler(new WsjcppLightWebHttpHandlerWebFolder("/", sDir));
@@ -49,7 +48,6 @@ int main(int argc, const char* argv[]) {
         httpServer.addHandler(new WsjcppLightWebHttpHandlerRewriteFolder("/app/", sDir));
         httpServer.addHandler(new WsjcppLightWebHttpHandlerRewriteFolder("/", sDir));
     }
-    httpServer.startSync();
-    return 0;
+    return httpServer.startSync2();
 }
 
