@@ -419,8 +419,13 @@ int WsjcppLightWebServer::startSync2() {
                         FD_CLR(i, &master); // remove from master set
                     } else {
                         addIncomeRequest(i);
-                        m_mapIncomeRequests[i]->appendRecieveRequest(sBuffer, nbytes);
+                        if (!m_mapIncomeRequests[i]->appendRecieveRequest(sBuffer, nbytes)) {
+                            WsjcppLog::err(TAG, "Something wrong with " + std::string(sBuffer, nbytes));
+                            // TODO close connection
+                        }
+
                         if (m_mapIncomeRequests[i]->isEnoughAppendReceived()) {
+                            
                             // TODO put to qeque requets and erase from m_mapIncomeRequests
                         }
 

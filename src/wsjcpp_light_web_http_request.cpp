@@ -152,11 +152,67 @@ void WsjcppLightWebHttpRequest::appendRecieveRequest(const std::string &sRequest
 
 // ----------------------------------------------------------------------
 
-void WsjcppLightWebHttpRequest::appendRecieveRequest(const char *sRequestPart, int nLength) {
+bool WsjcppLightWebHttpRequest::appendRecieveRequest(const char *sRequestPart, int nLength) {
     WsjcppLog::warn(TAG, "Append request " + std::string(sRequestPart, nLength));
     
-    // TODO parse what income
-    // 
+    int nPos = 0;
+    // fast preprocessing (only split)
+    if (m_nParserState == EnumParserState::START) {
+        int nPosEndType = parseRequestType(nPos, sRequestPart, nLength);
+        if (nPosEndType == -1) {
+            WsjcppLog::err(TAG, "Problem with parsing: parseRequestType");
+            return false;
+        } else {
+            nPos = nPosEndType;
+        }
+
+        int nPosEndPathAndGetParams = parseRequestPathAndGetParams(nPos, sRequestPart, nLength);
+        if (nPosEndPathAndGetParams == -1) {
+            WsjcppLog::err(TAG, "Problem with parsing: parseRequestPathAndGetParams");
+            return false;
+        } else {
+            nPos = nPosEndPathAndGetParams;
+        }
+
+        int nPosEndHttpVersion = parseRequestHttpVersion(nPos, sRequestPart, nLength);
+        if (nPosEndHttpVersion == -1) {
+            WsjcppLog::err(TAG, "Problem with parsing: parseRequestHttpVersion");
+            return false;
+        } else {
+            nPos = nPosEndHttpVersion;
+        }
+        WsjcppLog::warn(TAG, "Request Type " + m_sRequestType);
+        WsjcppLog::warn(TAG, "Request PathAndGet " + m_sRequestPathAndGetParams);
+        WsjcppLog::warn(TAG, "Request HttpVersion " + m_sRequestHttpVersion);
+        m_nParserState = EnumParserState::HEADERS;
+    }
+
+    if (m_nParserState == EnumParserState::HEADERS) {
+        // fast preprocessing
+        while (nPos < nLength) {
+            nPos = parseRequestNextHeader(nPos, sRequestPart, nLength);
+            if (sRequestPart[nPos] == '\n') {
+                nPos++;
+                if (m_nHeaderContentLength == 0) {
+                    m_nParserState = EnumParserState::ENDED;
+                } else {
+                    // TODO check max body size
+                    m_bRequestBody = new char[m_nHeaderContentLength];
+                    m_nRequestBodyWritePosition = 0;
+                    m_nParserState = EnumParserState::BODY;
+                }
+                break;
+            }
+        }
+    }
+
+    if (m_nParserState == EnumParserState::BODY) {
+        for (int i = nPos; i < nLength; i++) {
+            m_bRequestBody[m_nRequestBodyWritePosition] = sRequestPart[i];
+            m_nRequestBodyWritePosition++;
+        }
+    }
+    return true;
 }
 
 // ----------------------------------------------------------------------
@@ -219,4 +275,83 @@ void WsjcppLightWebHttpRequest::parseFirstLine(const std::string &sHeader) {
 }
 
 // ----------------------------------------------------------------------
+
+int WsjcppLightWebHttpRequest::parseRequestType(int nPos, const char *sRequestPart, int nLength) {
+    // fast preprocessing
+    m_sRequestType = "";
+    for (int i = 0; i < nLength; i++) {
+        char c = sRequestPart[i];
+        if (c == ' ') {
+            return i + 1;
+        } else {
+            m_sRequestType += c;
+        }
+    }
+}
+
+// ----------------------------------------------------------------------
+
+int WsjcppLightWebHttpRequest::parseRequestPathAndGetParams(int nPos, const char *sRequestPart, int nLength) {
+    // fast preprocessing
+    m_sRequestPathAndGetParams = "";
+    for (int i = nPos; i < nLength; i++) {
+        char c = sRequestPart[i];
+        if (c == ' ') {
+            return i + 1;
+        } else {
+            m_sRequestPathAndGetParams += c;
+        }
+    }
+    return -1;
+}
+
+// ----------------------------------------------------------------------
+
+int WsjcppLightWebHttpRequest::parseRequestHttpVersion(int nPos, const char *sRequestPart, int nLength) {
+    // fast preprocessing
+    m_sRequestHttpVersion = "";
+    for (int i = nPos; i < nLength; i++) {
+        char c = sRequestPart[i];
+        if (c == '\n') {
+            return i + 1;
+        } else {
+            m_sRequestHttpVersion += c;
+        }
+    }
+    return -1;
+}
+
+// ----------------------------------------------------------------------
+
+int WsjcppLightWebHttpRequest::parseRequestNextHeader(int nPos, const char *sRequestPart, int nLength) {
+    // fast preprocessing
+    std::string sHeaderName = "";
+    for (int i = nPos; i < nLength; i++) {
+        char c = sRequestPart[i];
+        if (c == ':') {
+            nPos = i + 1;
+            break;
+        } else {
+            sHeaderName += c;
+        }
+    }
+    sHeaderName = WsjcppCore::toLower(sHeaderName);
+    std::string sHeaderValue = "";
+    for (int i = nPos; i < nLength; i++) {
+        char c = sRequestPart[i];
+        if (c == '\n') {
+            WsjcppLog::warn(TAG, "sHeaderName = " + sHeaderName);
+            WsjcppLog::warn(TAG, "sHeaderValue = " + sHeaderValue);
+            if (sHeaderName == "content-length") {
+                m_nHeaderContentLength = atoi(sHeaderValue.c_str());
+            } else if (sHeaderName == "connection") {
+                m_sHeaderConnection = sHeaderValue;
+            }
+            return i + 1;
+        } else {
+            sHeaderValue += c;
+        }
+    }
+    return nPos;
+}
 
