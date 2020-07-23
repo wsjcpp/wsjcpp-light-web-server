@@ -410,6 +410,7 @@ int WsjcppLightWebServer::startSync2() {
                         // got error or connection closed by client
                         if (nbytes == 0) {
                             // connection closed
+                            eraseIncomeRequest(i);
                             WsjcppLog::err(TAG, "selectserver: socket " + std::to_string(i) + " hung up");
                         } else {
                             WsjcppLog::err(TAG, "recv");
@@ -417,7 +418,12 @@ int WsjcppLightWebServer::startSync2() {
                         close(i); // bye!
                         FD_CLR(i, &master); // remove from master set
                     } else {
-                        // TODO add to queue for reading data
+                        addIncomeRequest(i);
+                        m_mapIncomeRequests[i]->appendRecieveRequest(sBuffer, nbytes);
+                        if (m_mapIncomeRequests[i]->isEnoughAppendReceived()) {
+                            // TODO put to qeque requets and erase from m_mapIncomeRequests
+                        }
+
                         WsjcppLog::err(TAG, "recved " + std::string(sBuffer, nbytes));
                         // std::cout << std::string(sBuffer) << std::endl;
 
@@ -543,3 +549,21 @@ void WsjcppLightWebServer::logNewConnection(sockaddr_storage &clientAddress, soc
 }
 
 // ----------------------------------------------------------------------
+
+void WsjcppLightWebServer::addIncomeRequest(int i) {
+    std::map<int, WsjcppLightWebHttpRequest *>::iterator it = m_mapIncomeRequests.find(i);
+    if (it == m_mapIncomeRequests.end()) { // create a new one
+        // TODO set address
+        // std::string sAddress = inet_ntoa(clientAddress.sin_addr);
+        m_mapIncomeRequests[i] = new WsjcppLightWebHttpRequest(i, "");
+    }
+}
+
+// ----------------------------------------------------------------------
+
+void WsjcppLightWebServer::eraseIncomeRequest(int i) {
+    std::map<int, WsjcppLightWebHttpRequest *>::iterator it = m_mapIncomeRequests.find(i);
+    if (it != m_mapIncomeRequests.end()) { // create a new one
+        m_mapIncomeRequests.erase(it);
+    }
+}

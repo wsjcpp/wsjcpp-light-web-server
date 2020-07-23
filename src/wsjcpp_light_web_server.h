@@ -74,6 +74,8 @@ class WsjcppLightWebServer {
         void stopAndRemoveWorkers();
         std::string readAddress(int nSockFd);
         void logNewConnection(sockaddr_storage &clientAddress, socklen_t &clientAddressLength);
+        void addIncomeRequest(int i);
+        void eraseIncomeRequest(int i);
         std::string TAG;
         WsjcppLightWebDequeHttpRequests *m_pDeque;
         bool m_bStop;
@@ -84,7 +86,7 @@ class WsjcppLightWebServer {
         std::string m_sPort;
         std::vector<WsjcppLightWebHttpHandlerBase *> *m_pVHandlers;
         std::vector<WsjcppLightWebHttpThreadWorker *> m_vWorkers;
-
+        std::map<int, WsjcppLightWebHttpRequest *> m_mapIncomeRequests;
         int m_nListenerSockFd;
         int m_nBacklog;
         struct sockaddr_in m_serverAddress;

@@ -29,7 +29,8 @@ class WsjcppLightWebHttpRequest {
 
         int getSockFd() const;
         std::string getUniqueId() const;
-        void appendRecieveRequest(const std::string &sRequestPart);
+        void appendRecieveRequest(const std::string &sRequestPart); // depraceted
+        void appendRecieveRequest(const char *sRequestPart, int nLength);
         bool isEnoughAppendReceived() const;
         
         std::string getAddress() const;

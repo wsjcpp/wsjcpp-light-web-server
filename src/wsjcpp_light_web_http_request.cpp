@@ -152,6 +152,15 @@ void WsjcppLightWebHttpRequest::appendRecieveRequest(const std::string &sRequest
 
 // ----------------------------------------------------------------------
 
+void WsjcppLightWebHttpRequest::appendRecieveRequest(const char *sRequestPart, int nLength) {
+    WsjcppLog::warn(TAG, "Append request " + std::string(sRequestPart, nLength));
+    
+    // TODO parse what income
+    // 
+}
+
+// ----------------------------------------------------------------------
+
 bool WsjcppLightWebHttpRequest::isEnoughAppendReceived() const {
     return m_nParserState == EnumParserState::ENDED;
 }
